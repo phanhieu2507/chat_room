@@ -32,8 +32,9 @@
 #define REQUEST1       22
 #define AWAIT          23
 #define DONE           24
-#define KICK           25
-#define KICKU          26
+#define KICK           25 //client send
+#define KICKU          26 //server send
+#define LIST_FRIENDS   27
 /* Cấu truct _packet */
 
 typedef struct _packet {

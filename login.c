@@ -10,11 +10,12 @@
 node *head = NULL; // định nghĩa, không phải khai báo
 node1 *head1 = NULL; // định nghĩa, không phải khai báo
 
-void addNode(char* user, char* password, char *status2, int status){ // Them account vao ds lien ket
+void addNode(char* user, char* password, char *status2, int status, char *friend){ // Them account vao ds lien ket
 	node *temp = (struct Node*) malloc(sizeof(struct Node));
 	strcpy(temp->username, user);
 	strcpy(temp->pass, password);
 	strcpy(temp->status2,status2);
+	strcpy(temp->friend,friend);
 	temp->status = status; //check xem user da bi block chua. 0: block
 	temp->state = 0; //trang thai online:1, off: 0
 	temp->next = head;

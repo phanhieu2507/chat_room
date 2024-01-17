@@ -1,19 +1,19 @@
-phanhieu 123456 2 32698
-hmn 123 1 32766
-hthq hthq 1 32765
-hoquynh hoquynh 1 32667
-d d 1 32667
-abcac asbca 1 32765
-ha ha 1 32764
-phuonganh 123 1 32765
-c c 1 32767
-b b 1 32767
-a a 3 32767
-popo 123 1 32767
-cas v 1 32767
-hoanganh hoanganh23 1 32766
-hq hq 1 32765
-quynh quynh 3 32765
-hthq1 hthq1 3 1
-NKT 123 1 22051
-HMN 123 1 22051
+phanhieu 123456 2 32698 hmn/hthq/ha
+hmn 123 1 32766 phanhieu
+hthq hthq 1 32765 phanhieu
+hoquynh hoquynh 1 32667 NULL
+d d 1 32667 NULL
+abcac asbca 1 32765 NULL
+ha ha 1 32764 phanhieu
+phuonganh 123 1 32765 NULL
+c c 1 32767 NULL
+b b 1 32767 NULL
+a a 3 32767 NULL
+popo 123 1 32767 NULL
+cas v 1 32767 NULL
+hoanganh hoanganh23 1 32766 NULL
+hq hq 1 32765 NULL
+quynh quynh 3 32765 NULL
+hthq1 hthq1 3 1 NULL
+NKT 123 1 22051 NULL
+HMN 123 1 22051 hmn/hthq/ha

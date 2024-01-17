@@ -33,10 +33,11 @@ void readFile()
 	char pass[MAXLEN];
 	int status;
 	char status2[MAXLEN];
+	char friend[MAXLEN];
 	while (feof(fp) == 0)
 	{
-		fscanf(fp, "%s %s %s %d", user, pass, status2, &status);
-		addNode(user, pass, status2, status);
+		fscanf(fp, "%s %s %s %d %s", user, pass, status2, &status, &friend);
+		addNode(user, pass, status2, status, friend);
 		max++;
 	}
 }
@@ -271,8 +272,6 @@ int listUserGr(int sock)
 /*dua ra danh sach nhung user online*/
 int listOnline(int sock)
 {
-
-
 	char bufrptr1[MAXPKTLEN];
 	int t=1;
 	char stt[10];
@@ -294,6 +293,38 @@ int listOnline(int sock)
 	}
 	/* Gửi tin nhắn đến yêu cầu của khách hàng */
 	sendpkt(sock, LISTUSERON, strlen(bufrptr1)+1, bufrptr1);
+	return (1);
+}
+node *findnamebysock(int sock)
+{
+	node *temp = head;
+	/* Duyệt tất cả các phòng */
+	while(temp!=NULL){
+		if(temp->sock==sock){
+			return(temp);
+		}
+		temp = temp->next;
+	}
+	return (NULL);
+}
+int listFriend(int sock)
+{
+	char bufrptr1[MAXPKTLEN];
+	node *temp = head;
+	node *user;
+	user = findnamebysock(sock);
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username,user->username) == 0) //user hien tai dang online
+		{
+				strcpy(bufrptr1,temp->friend);
+				break;
+		}
+		temp = temp->next;
+	}
+	
+	/* Gửi tin nhắn đến yêu cầu của khách hàng */
+	sendpkt(sock, LIST_FRIENDS, strlen(bufrptr1)+1, bufrptr1);
 	return (1);
 }
 
@@ -373,7 +404,7 @@ int processRegister(int sock, char *username, char *pass)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	addNode(username, pass, "", 1);
+	addNode(username, pass, "", 1, NULL);
 	writeFile();
 	max++;
 	char *succmsg = "Register successful!\n";
@@ -529,20 +560,10 @@ int try1(char *a)
 		}
 		temp = temp->next;
 	}
+	return temp->sock;
 }
 
-node *findnamebysock(int sock)
-{
-	node *temp = head;
-	/* Duyệt tất cả các phòng */
-	while(temp!=NULL){
-		if(temp->sock==sock){
-			return(temp);
-		}
-		temp = temp->next;
-	}
-	return (NULL);
-}
+
 
 int findbysock(int sock){
 	int m;
@@ -991,6 +1012,9 @@ int main(int argc, char *argv[])
 						break;
 					case LISTUSERON:
 						listOnline(sock);
+						break;
+					case LIST_FRIENDS:
+						listFriend(sock);
 						break;
 					case LIST_USERGR:
 						

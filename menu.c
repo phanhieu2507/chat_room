@@ -29,7 +29,8 @@ void chatFunction(){
 	printf("4. Update status\n");
 	printf("5. Chat 1vs1\n");
 	printf("6. Sign Out\n");
-	printf("Your choice (1-6):\n");
+	printf("7. List friend\n");
+	printf("Your choice (1-7):\n");
 	//printf("a");
 }
 
