@@ -15,7 +15,7 @@ void addNode(char* user, char* password, char *status2, int status){ // Them acc
 	strcpy(temp->username, user);
 	strcpy(temp->pass, password);
 	strcpy(temp->status2,status2);
-	temp->status = status;
+	temp->status = status; //check xem user da bi block chua. 0: block
 	temp->state = 0; //trang thai online:1, off: 0
 	temp->next = head;
 	head = temp;
@@ -29,7 +29,6 @@ void addNodeRoom(char* name, char *cap, char *admin){ // Them account vao ds lie
 	//temp1->online = 0; //trang thai online:1, off: 0
 	temp1->next=head1;
 	head1 = temp1;
-	//printf("%s %s\n",temp1->name,temp1->cap);
 }
 
 node *checkExist(char* user){ // xem ten account co trong danh sach lien ket chua??
@@ -94,7 +93,7 @@ int lockAccount(char* user){ // khoa account
 
 void writeFile(){ //ghi lai thong tin vao file
 	node *temp = head;
-	FILE *fp = fopen("a.txt", "w+");
+	FILE *fp = fopen("user.txt", "w+");
 	while(temp!=NULL){
 		fprintf(fp, "%s %s %s %d", temp->username, temp->pass, temp->status2,  temp->status);
 		temp = temp->next;

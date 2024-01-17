@@ -24,7 +24,6 @@ int startserver(char *port)
 {
   int     sd;      /* socket mô tả */
   int     myport;  /* Cổng máy chủ */
-  const char *  myname;  /* Tên đầy đủ của localhosst  */
 
   /*
 	Gọi hàm socket để tạo mô tả socket TCP
@@ -34,7 +33,7 @@ int startserver(char *port)
   /*
    Gọi bind để gán địa chỉ cục bộ cho socket 
   */
-
+  // Lang nghe tat ca dia chi IP
   struct sockaddr_in server_address;
   server_address.sin_family = AF_INET;
   server_address.sin_addr.s_addr = htonl(INADDR_ANY); 
@@ -46,23 +45,10 @@ int startserver(char *port)
   /*Gọi listen để đặt sd  của socket phía máy chủ sang trạng thái nghe thụ động và đặt độ dài của hàng đợi chấp nhận thành 20 */
   listen(sd, 20);
 
-  /*
-    Gọi getsockname, gethostname và gethostbyname để xác định tên máy chủ cục bộ và số cổng máy chủ.
-  */
-
-  char hostname[MAXNAMELEN];
-
-  if (gethostname(hostname, sizeof hostname) != 0)
-  	perror("gethostname");
-
-  struct hostent* h;
-	h = gethostbyname(hostname);
-
   int len = sizeof(struct sockaddr);
 
   getsockname(sd, (struct sockaddr *) &server_address, &len);
 
-  // myname = h->h_name;
   myport = ntohs(server_address.sin_port);
   if(myport!=atoi(port)){
     printf("error: server already exist!\n");
@@ -70,8 +56,6 @@ int startserver(char *port)
   }
 
   /*Sẵn sàng chấp nhận yêu cầu của khách hàng */
-  // printf("admin: started server on '%s' at '%d'\n",
-	//  myname, myport);
    printf("admin: started at port: '%d'\n",
 	 myport);
   return(sd);
@@ -91,13 +75,9 @@ int hooktoserver(char* port, char* addr)
 
 	sd = socket(AF_INET, SOCK_STREAM, 0);
 	
-	/*
-Gọi gethostbyname () và connect () để kết nối với cổng 'servport' của 'servhost'
-	*/
-	struct hostent *hostinfo;
+
 	struct sockaddr_in address; // thong tin dia chi server
 
-	// hostinfo = gethostbyname(servhost); /*Tên máy chủ */
 	address.sin_addr.s_addr = inet_addr(addr);
 	address.sin_family = AF_INET;
 	address.sin_port = htons(atoi(port));
@@ -120,7 +100,7 @@ int readn(int sd, char *buf, int n)
   int     toberead;
   char *  ptr;
 
-  toberead = n; // so byte can ghi
+  toberead = n; // so byte con lai can doc
   ptr = buf;
   while (toberead > 0) {
     int byteread;

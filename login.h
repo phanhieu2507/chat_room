@@ -2,7 +2,7 @@
 #define __LOGIN_H__
 #define BUFF_SIZE 8192
 
-typedef struct Node{
+typedef struct Node{ //user node
 	char username[30];
 	char pass[30];
 	int status;
@@ -13,7 +13,7 @@ typedef struct Node{
 	struct Node *next;
 } node;
 
-typedef struct Node1{
+typedef struct Node1{ //room node
 	char name[30];
 	char cap[10];
 	int online;

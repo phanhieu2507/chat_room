@@ -10,7 +10,7 @@
 #define LIST_GROUPS    0
 #define JOIN_GROUP     1
 #define LEAVE_GROUP    2
-#define USER_TEXT      3
+#define USER_TEXT      3 //receive msg
 #define JOIN_REJECTED  4
 #define JOIN_ACCEPTED  5
 #define LOG_IN         6
@@ -26,7 +26,7 @@
 #define QUIT           16
 #define REFRESH        17
 #define MENU           18
-#define USER_TEXT1     19
+#define USER_TEXT1     19 //send msg 
 #define LIST_USERGR    20
 #define TO             21
 #define REQUEST1       22

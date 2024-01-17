@@ -67,57 +67,15 @@ void showgroups1(long lent, char *text)
 		str=strtok(NULL,"/");
 	}
 }
-// void showUser(long lent, char *text)
-// {
-// 	char *tptr;
-
-// 	tptr = text;
-// 	printf("%18s %19s %19s\n", "Username", "Feeling", "Sock");
-// 	while (tptr < text + lent)
-// 	{
-// 		char *username, *status, *stt, *sock;
-// 		int st;
-
-// 		username = tptr;
-// 		tptr = username + strlen(username) + 1;
-// 		//printf("%s",username);
-// 		status = tptr;
-// 		tptr = status + strlen(status) + 1;
-
-// 		sock = tptr;
-// 		tptr = sock + strlen(sock) + 1;
-
-		// st = atoi(status);
-
-		// switch (st)
-		// {
-		// case 1:
-		// 	strcpy(stt, "Smile");
-		// 	break;
-		// case 2:
-		// 	strcpy(stt, "Sad");
-		// 	break;
-		// case 3:
-		// 	strcpy(stt, "Busy");
-		// 	break;
-		// case 4:
-		// 	strcpy(stt, "Need_Chat");
-		// 	break;
-		// }
-// 		printf("%18s %19s %19s\n", username, stt, sock);
-// 	}
-// }
 void showUser1(char *text)
 {
 	char *tptr ;
-	int st;
 	tptr = text;
 	printf("%18s\n", "Username");
 	char *username,*status;
 	username = strtok(text,"/");
 	while (username!=NULL)
 	{
-		
 		printf("%18s\n", username);
 		username=strtok(NULL,"/");
 	}
@@ -402,20 +360,6 @@ int join11(int sock)
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 	uname = strdup(bufr);
-	// /* Thoát */
-	// if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	// {
-	// 	close(sock);
-	// 	exit(0);
-	// }
-	// uname = malloc(strlen(bufr) + 1);
-	// strcpy(uname, bufr);//strcpy(uname,bufr);
-
-	/* Gửi tin nhắn */
-	// bufrptr = bufr;
-	// strcpy(bufrptr, uname);
-	// bufrptr += strlen(bufrptr) + 1;
-	// bufrlen = bufrptr - bufr;
 	sendpkt(sock, JOIN_2, strlen(uname)+1, uname);
 
 	/* Nhận phản hồi từ server */
@@ -786,7 +730,7 @@ int main(int argc, char *argv[])
 	/* Kiểm tra tính hợp lệ của cú pháp  */
 	if (argc != 3)
 	{
-		printf("Wrong syntax!!!\n--> Correct Syntax: ./client AddressIP PortNumber\n");
+		printf("Wrong syntax!!!\n--> Correct Syntax: ./chatclient AddressIP PortNumber\n");
 		return 1;
 	}
 	/* Kết nối vs máy chủ */
@@ -813,7 +757,6 @@ int main(int argc, char *argv[])
 	{
 		/*Menu login/logout */
 		menu();
-		// char choice=' ';
 		strcpy(choice, " ");
 		__fpurge(stdin);
 		scanf("%s", &choice);
@@ -859,7 +802,6 @@ int main(int argc, char *argv[])
 					Packet *pkt1;
 					char *tm;
 					pkt1 = recvpkt(sock);
-					// printf("bang tin,type :%d , text:%s\n", pkt1->type,pkt1->text);
 					if (!pkt1)
 					{
 						/* Máy chủ ngừng hoạt động */
@@ -873,7 +815,7 @@ int main(int argc, char *argv[])
 						fprintf(stderr, "error: unexpected reply from server\n");
 						exit(1);
 					}
-					else if (pkt1->type == REQUEST)
+					else if (pkt1->type == REQUEST) //duoc user khac yeu cau chat 11
 					{	
 							Packet *pkt2;
 							int pkt1_len = pkt1->lent;
@@ -889,9 +831,9 @@ int main(int argc, char *argv[])
 							strcat(tl,"/");
 							strcat(tl,pkt1->text);
 							// printf("%s",tl);
-							sendpkt(sock,REQUEST1,strlen(tl)+1,tl);
-							pkt2 = recvpkt(sock);
-							if (pkt2->type == SUCCESS){
+							sendpkt(sock,REQUEST1,strlen(tl)+1,tl); //DONG Y HOAC KHONG
+							pkt2 = recvpkt(sock); 
+							if (pkt2->type == SUCCESS){ //NEU DONG Y CHAT 11
 								printf("admin: You chat with '%s' \n", pkt1->text);
 								while (1)
 								{
@@ -1113,9 +1055,6 @@ int main(int argc, char *argv[])
 										if (strncmp(bufr, KICKUSER, strlen(KICKUSER)) == 0)
 										{
 											kickuser(sock);
-											// sendListUserGr(sock);
-											// break;
-											// sendpkt(sock,KICK,0,NULL);
 										}else
 										if (strncmp(bufr, LISTUSERGROUP, strlen(LISTUSERGROUP)) == 0)
 										{
@@ -1357,7 +1296,6 @@ int main(int argc, char *argv[])
 											sendpkt(sock, USER_TEXT, strlen(bufr) + 1, bufr);
 										}
 										
-
 										/*Gửi tin nhắn đến máy chủ */
 									}
 								}

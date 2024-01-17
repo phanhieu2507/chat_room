@@ -1,4 +1,4 @@
-phanhieu 123456  1
+phanhieu 123456 2 32698
 hmn 123 1 32766
 hthq hthq 1 32765
 hoquynh hoquynh 1 32667
@@ -13,7 +13,7 @@ popo 123 1 32767
 cas v 1 32767
 hoanganh hoanganh23 1 32766
 hq hq 1 32765
-quynh quynh 1 32765
+quynh quynh 3 32765
 hthq1 hthq1 3 1
 NKT 123 1 22051
 HMN 123 1 22051
