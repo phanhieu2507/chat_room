@@ -35,6 +35,14 @@
 #define KICK           25 //client send
 #define KICKU          26 //server send
 #define LIST_FRIENDS   27
+#define ADD_FRIEND     28
+#define REP_ADD_FRIEND 29
+#define REQUEST_ADD_FRIEND 30
+#define FRIEND_ACCEPT 31
+#define FRIEND_REJECT 32
+#define UN_FRIEND 33
+#define FAILED 34
+
 /* Cấu truct _packet */
 
 typedef struct _packet {

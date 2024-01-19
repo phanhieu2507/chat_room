@@ -19,8 +19,8 @@
 #include "login.h"
 #define MAXLEN 100
 
-int max=0; //so user
-node *current[MAXLEN]; //nhung user da login
+int max = 0;		   // so user
+node *current[MAXLEN]; // nhung user da login
 void readFile()
 {
 	FILE *fp = fopen("user.txt", "r");
@@ -42,15 +42,17 @@ void readFile()
 	}
 }
 
-
-
-void writeData(char *user, char *data)
+void writeDataUser()
 {
-	char filename[50];
-	strcpy(filename, user);
-	strcat(filename, ".txt");
-	FILE *fp = fopen(filename, "user");
-	fprintf(fp, "%s %s", "\n", data);
+	node *temp = head;
+	FILE *fp = fopen("user.txt", "w+");
+	while (temp != NULL)
+	{
+		fprintf(fp, "%s %s %s %d %s", temp->username, temp->pass, temp->status2, temp->status, temp->friend);
+		temp = temp->next;
+		if (temp != NULL)
+			fprintf(fp, "\n");
+	}
 	fclose(fp);
 }
 /* Thông tin thành viên trong nhóm*/
@@ -104,7 +106,6 @@ typedef struct _group
 
 } Group;
 
-
 /* Các phòng chat */
 Group group[1000];
 int ngroups; // So groups
@@ -122,17 +123,37 @@ int findgroup(char *name)
 	return (-1);
 }
 /* Tim tem user */
-int findname(char*name){
-	int m=0;
+int findname(char *name)
+{
+	int m = 0;
 	node *temp = head;
-	while(temp!=NULL){
-		if(strcmp(temp->username,name) == 0){
-			if(temp->state == 1) m=1;
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, name) == 0)
+		{
+			if (temp->state == 1)
+				m = 1;
 		}
 		temp = temp->next;
-
 	}
 	return m;
+}
+void removeSubstring(char *str, const char *sub) {
+    // Tạo một chuỗi tạm với dấu '/' và chuỗi con
+    char temp[100];
+    strcpy(temp, "/");
+    strcat(temp, sub);
+
+    // Nối chuỗi tạm vào chuỗi gốc
+    strcat(str, temp);
+
+    char *pos = strstr(str, temp);
+
+    while (pos != NULL) {
+        size_t len = strlen(temp);
+        memmove(pos, pos + len, strlen(pos + len) + 1);
+        pos = strstr(str, temp);
+    }
 }
 
 /* ͨTìm thông tin thành viên trong nhom theo tên */
@@ -154,7 +175,7 @@ Member *findmemberbyname(char *name)
 	}
 	return (NULL);
 }
-//Tim nhom co user
+// Tim nhom co user
 int grid1(char *name)
 {
 	int grid; /* ID phòng*/
@@ -173,7 +194,20 @@ int grid1(char *name)
 	}
 	return (NULL);
 }
-
+node *findsockbyname(char *username)
+{
+	node *temp = head;
+	/* Duyệt tất cả các phòng */
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, username) == 0)
+		{
+			return (temp);
+		}
+		temp = temp->next;
+	}
+	return (NULL);
+}
 /* ͨTìm thành viên thông qua socket */
 Member *findmemberbysock(int sock)
 {
@@ -201,8 +235,8 @@ int initgroups()
 	char name[MAXNAMELEN];
 	char admin[MAXNAMELEN];
 	char cap[BUFF_SIZE];
-	int capa; //so luong toi da nguoi trong phong
-	int grid; //id cua group
+	int capa; // so luong toi da nguoi trong phong
+	int grid; // id cua group
 
 	/* Mở file lưu trữ thông tin chat */
 	fp = fopen("groups.txt", "r");
@@ -239,7 +273,7 @@ int initgroups()
 		group[grid].admin = strdup(admin);
 		group[grid].mems = NULL;
 		sprintf(cap, "%d", capa);
-		addNodeRoom(name, cap,admin);
+		addNodeRoom(name, cap, admin);
 	}
 	return (1);
 }
@@ -250,58 +284,65 @@ int listUserGr(int sock)
 	Member *sender;
 	char bufrptr1[MAXPKTLEN];
 	int t = 1;
-	//char m[MAXLEN];
+	// char m[MAXLEN];
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
 	sender = findmemberbysock(sock);
 	int id = grid1(sender->name);
 	for (memb = group[id].mems; memb; memb = memb->next)
+	{
+		if (t == 1)
 		{
-			if (t==1){
-				strcpy(bufrptr1,memb->name);
-				t=0;
-			} else {
-				strcat(bufrptr1,"/");
-				strcat(bufrptr1,memb->name);	
-			}
+			strcpy(bufrptr1, memb->name);
+			t = 0;
 		}
+		else
+		{
+			strcat(bufrptr1, "/");
+			strcat(bufrptr1, memb->name);
+		}
+	}
 	/* Gui thong tin cac thanh vien co trong group ma socket hien tai dang tham gia */
-	sendpkt(sock, LIST_USERGR, strlen(bufrptr1)+1, bufrptr1);
+	sendpkt(sock, LIST_USERGR, strlen(bufrptr1) + 1, bufrptr1);
 	return (1);
 }
 /*dua ra danh sach nhung user online*/
 int listOnline(int sock)
 {
 	char bufrptr1[MAXPKTLEN];
-	int t=1;
+	int t = 1;
 	char stt[10];
 	node *temp = head;
 	while (temp != NULL)
 	{
-		if (temp->state == 1) //user hien tai dang online
+		if (temp->state == 1) // user hien tai dang online
 		{
-			if (t==1){
-				strcpy(bufrptr1,temp->username);
-				t=0;
-			} else {
-				strcat(bufrptr1,"/");
-				strcat(bufrptr1,temp->username);
-
+			if (t == 1)
+			{
+				strcpy(bufrptr1, temp->username);
+				t = 0;
+			}
+			else
+			{
+				strcat(bufrptr1, "/");
+				strcat(bufrptr1, temp->username);
 			}
 		}
 		temp = temp->next;
 	}
 	/* Gửi tin nhắn đến yêu cầu của khách hàng */
-	sendpkt(sock, LISTUSERON, strlen(bufrptr1)+1, bufrptr1);
+	sendpkt(sock, LISTUSERON, strlen(bufrptr1) + 1, bufrptr1);
 	return (1);
 }
 node *findnamebysock(int sock)
 {
 	node *temp = head;
 	/* Duyệt tất cả các phòng */
-	while(temp!=NULL){
-		if(temp->sock==sock){
-			return(temp);
+	while (temp != NULL)
+	{
+		if (temp->sock == sock)
+		{
+			return (temp);
 		}
 		temp = temp->next;
 	}
@@ -315,50 +356,51 @@ int listFriend(int sock)
 	user = findnamebysock(sock);
 	while (temp != NULL)
 	{
-		if (strcmp(temp->username,user->username) == 0) //user hien tai dang online
+		if (strcmp(temp->username, user->username) == 0) // user hien tai dang online
 		{
-				strcpy(bufrptr1,temp->friend);
-				break;
+			strcpy(bufrptr1, temp->friend);
+			break;
 		}
 		temp = temp->next;
 	}
-	
+
 	/* Gửi tin nhắn đến yêu cầu của khách hàng */
-	sendpkt(sock, LIST_FRIENDS, strlen(bufrptr1)+1, bufrptr1);
+	sendpkt(sock, LIST_FRIENDS, strlen(bufrptr1) + 1, bufrptr1);
 	return (1);
 }
 
 /* Gửi tất cả thông tin phòng trò chuyện cho khách hàng */
 int listgroups(int sock)
 {
-	int grid,i;
-	char bufrptr1[MAXPKTLEN],length[MAXPKTLEN];
+	int grid, i;
+	char bufrptr1[MAXPKTLEN], length[MAXPKTLEN];
 	/* Mỗi phần thông tin được phân tách bằng NULL trong chuỗi */
-	sprintf (length, "%d",ngroups);
-	strcpy(bufrptr1,length);
+	sprintf(length, "%d", ngroups);
+	strcpy(bufrptr1, length);
 	for (grid = 0; grid < ngroups; grid++)
 	{
-		 {
-			strcat(bufrptr1,"/");
-			strcat(bufrptr1,group[grid].name);
-			strcat(bufrptr1,"/");
+		{
+			strcat(bufrptr1, "/");
+			strcat(bufrptr1, group[grid].name);
+			strcat(bufrptr1, "/");
 			char str[100];
-			sprintf (str, "%d",group[grid].capa);
-			strcat(bufrptr1,str);
-			strcat(bufrptr1,"/");
-			sprintf (str, "%d",group[grid].occu);
-			strcat(bufrptr1,str);
+			sprintf(str, "%d", group[grid].capa);
+			strcat(bufrptr1, str);
+			strcat(bufrptr1, "/");
+			sprintf(str, "%d", group[grid].occu);
+			strcat(bufrptr1, str);
 		}
 	}
 	/* Gửi tin nhắn đến yêu cầu của khách hàng */
-	sendpkt(sock, LIST_GROUPS, strlen(bufrptr1)+1, bufrptr1);
+	sendpkt(sock, LIST_GROUPS, strlen(bufrptr1) + 1, bufrptr1);
 	return (1);
 }
 
 int processLogIn(int sock, char *username, char *pass)
 {
-	//check username
-	if (findname(username)){
+	// check username
+	if (findname(username))
+	{
 		char *errmsg = "-> account is login!\n";
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
@@ -382,9 +424,9 @@ int processLogIn(int sock, char *username, char *pass)
 		return 0;
 	}
 	char *succmsg = "Log in successful!\n";
-	current[sock] = checkExist(username);//return node user dang nhap vao
-	current[sock]->state = 1; //user dang online
-	current[sock]->sock = sock; 
+	current[sock] = checkExist(username); // return node user dang nhap vao
+	current[sock]->state = 1;			  // user dang online
+	current[sock]->sock = sock;
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	printf("%d\n", sock);
 	return 1;
@@ -420,19 +462,19 @@ int processCreatRoom(int sock, char *name, char *cap)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	addNodeRoom(name, cap,current[sock]->username);
+	addNodeRoom(name, cap, current[sock]->username);
 
 	writeRoomFile(ngroups + 1);
-	//printf("%d\n",ngroups);
+	// printf("%d\n",ngroups);
 	ngroups++;
-	//group = realloc(group, 1 * sizeof(int));
+	// group = realloc(group, 1 * sizeof(int));
 	group[ngroups - 1].name = strdup(name);
 	group[ngroups - 1].capa = atoi(cap);
 	group[ngroups - 1].occu = 0;
 	group[ngroups - 1].admin = strdup(current[sock]->username);
 	group[ngroups - 1].mems = NULL;
 
-	//printf("%s\n",group[ngroups-1].name);
+	// printf("%s\n",group[ngroups-1].name);
 	char *succmsg = "Create successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	return 1;
@@ -449,10 +491,10 @@ int Update(int sock, char *status, char *username)
 		}
 		temp = temp->next;
 	}*/
-	strcpy(current[sock]->status2,status);
+	strcpy(current[sock]->status2, status);
 	writeFile();
 
-	//printf("%s\n",group[ngroups-1].name);
+	// printf("%s\n",group[ngroups-1].name);
 	char *succmsg = "Update successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	return 1;
@@ -480,7 +522,7 @@ int processLogout(int sock, char *username)
 	}
 	current[sock]->state = 0;
 	current[sock] = NULL;
-	
+
 	char *succmsg = "Log out successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 
@@ -502,7 +544,7 @@ int joingroup(int sock, char *gname, char *username)
 		return (0);
 	}
 
-		leavegroup(sock);
+	leavegroup(sock);
 
 	memb = findmemberbyname(username);
 
@@ -521,7 +563,7 @@ int joingroup(int sock, char *gname, char *username)
 		printf("error : unable to calloc\n");
 	}
 	memb->name = strdup(username);
-	printf("%s , %s\n", memb->name,username);
+	printf("%s , %s\n", memb->name, username);
 	memb->sock = sock;
 	memb->grid = grid;
 	memb->prev = NULL;
@@ -540,12 +582,16 @@ int joingroup(int sock, char *gname, char *username)
 	fflush(stdin);
 	return (1);
 }
-//tim sock id bang username
-int try(char *username){
+// tim sock id bang username
+int try(char *username)
+{
 	node *temp = head;
-	while(1){
-		if(strcmp(temp->username,username) == 0) break;
-		else temp = temp->next;
+	while (1)
+	{
+		if (strcmp(temp->username, username) == 0)
+			break;
+		else
+			temp = temp->next;
 	}
 	return temp->sock;
 }
@@ -553,8 +599,10 @@ int try(char *username){
 int try1(char *a)
 {
 	node *temp = head;
-	while(temp!=NULL){
-		if(strcmp(temp->username,a) == 0){
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, a) == 0)
+		{
 			temp->ID = sl;
 			temp->state = 0;
 		}
@@ -563,13 +611,14 @@ int try1(char *a)
 	return temp->sock;
 }
 
-
-
-int findbysock(int sock){
+int findbysock(int sock)
+{
 	int m;
 	node *temp = head;
-	while(temp!=NULL){
-		if(temp->sock == sock){
+	while (temp != NULL)
+	{
+		if (temp->sock == sock)
+		{
 			m = temp->ID;
 		}
 		temp = temp->next;
@@ -577,14 +626,16 @@ int findbysock(int sock){
 	return m;
 }
 
-int findother(int sock){
+int findother(int sock)
+{
 	printf("input other sock %d\n", sock);
 	int m;
 	printf("head here %d - %d\n", head->ID, head->sock);
 	node *temp = head;
-	
-	while(temp!=NULL){
-		if(temp->ID == findbysock(sock) && temp->sock!=sock)
+
+	while (temp != NULL)
+	{
+		if (temp->ID == findbysock(sock) && temp->sock != sock)
 		{
 			m = temp->sock;
 		}
@@ -596,28 +647,28 @@ int findother(int sock){
 int changeStatus(char *name)
 {
 	node *temp = head;
-	while(temp!=NULL)
+	while (temp != NULL)
 	{
-		if(strcmp(temp->username,name)==0) {
-		temp->state = 0;
+		if (strcmp(temp->username, name) == 0)
+		{
+			temp->state = 0;
 		}
-		temp = temp-> next;
+		temp = temp->next;
 	}
-	
 }
 // join chat 11, uname la user muon chat
 int join11(int sock, char *uname, char *username)
 {
-	int m = 0,n;
-	node *cur1,*cur2;
+	int m = 0, n;
+	node *cur1, *cur2;
 	/* Không thể tự chat với bản thân */
-	if(strcmp(current[sock]->username,uname)==0)
+	if (strcmp(current[sock]->username, uname) == 0)
 	{
 		char *errmsg = "Can't talk with my self";
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
 		return (0);
 	}
-	if(!findname(uname))
+	if (!findname(uname))
 	{
 		char *errmsg = "This user isn't available!";
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
@@ -625,26 +676,84 @@ int join11(int sock, char *uname, char *username)
 	}
 	printf("start new chat1v1 %s - %s\n", username, uname);
 
-	try1(username); // 2 user dang chat voi nhau 
-	try1(uname); // se co cung id, dat trang thai la offline
+	try1(username); // 2 user dang chat voi nhau
+	try1(uname);	// se co cung id, dat trang thai la offline
 	sl++;
 	printf("send initial pkt to %s from %s - len %zd\n", uname, current[sock]->username, strlen(current[sock]->username));
-	sendpkt(try(uname),REQUEST,strlen(current[sock]->username)+1,current[sock]->username);	
+	sendpkt(try(uname), REQUEST, strlen(current[sock]->username) + 1, current[sock]->username);
 	printf("send join accepted pkt to %s\n", uname);
+	return (1);
+}
+// add friend uname la user muon chat
+int requestAddFriend(int sock, char *uname, char *username)
+{
+	int m = 0, n;
+	node *cur1, *cur2;
+	/* Không thể tự ket ban với bản thân */
+	if (strcmp(current[sock]->username, uname) == 0)
+	{
+		char *errmsg = "Can't add friend to my self";
+		sendpkt(sock, FRIEND_REJECT, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
+		return (0);
+	}
+	if (!findname(uname))
+	{
+		char *errmsg = "This user isn't available!";
+		sendpkt(sock, FRIEND_REJECT, strlen(errmsg), errmsg);
+		return (0);
+	}
+	printf("add friend %s - %s\n", username, uname);
+
+	sendpkt(try(uname), REQUEST_ADD_FRIEND, strlen(current[sock]->username) + 1, current[sock]->username);
+
+	return (1);
+}
+int requestUnFriend(int sock, char *uname, char *username)
+{
+	/* Không thể tự huy ket ban với bản thân */
+	if (strcmp(current[sock]->username, uname) == 0)
+	{
+		char *errmsg = "Can't unfriend to my self";
+		sendpkt(sock, FAILED, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
+		return (0);
+	}
+	if (!findname(uname))
+	{
+		char *errmsg = "This user isn't available!";
+		sendpkt(sock, FAILED, strlen(errmsg), errmsg);
+		return (0);
+	}
+	printf("unfriend %s - %s\n", username, uname);
+	
+	node *temp = head;
+	while(temp != NULL){
+		if(strcmp(temp->username,uname) == 0 || strcmp(temp->username,username) == 0){
+			if(strcmp(temp->username,uname) == 0){
+				removeSubstring(temp->friend,username);
+			}
+			else removeSubstring(temp->friend, uname);
+		}
+		temp = temp->next;
+	}
+	writeDataUser();
+	sendpkt(sock, SUCCESS, strlen(current[sock]->username) + 1, current[sock]->username);
+
 	return (1);
 }
 
 int changeStatus1(int sock)
 {
 	node *temp = head;
-	while(temp!=NULL)
+	while (temp != NULL)
 	{
-		if(temp->sock == sock) temp->state = 1;
-		temp = temp-> next;
+		if (temp->sock == sock)
+			temp->state = 1;
+		temp = temp->next;
 	}
 }
 
-int leave11(int sock){
+int leave11(int sock)
+{
 	changeStatus1(sock);
 	changeStatus1(findother(sock));
 	sendpkt(findother(sock), QUIT, 0, NULL);
@@ -679,23 +788,28 @@ int leavegroup(int sock)
 	group[memb->grid].occu--;
 	temp->state = 1;
 	/* Giải phóng bộ nhớ*/
-	//free(memb->sock);
+	// free(memb->sock);
 	free(memb);
 	return (1);
 }
 
-char *name(int sock){
+char *name(int sock)
+{
 	char *name;
-	node *temp= head;
-	while(temp!=NULL)
+	node *temp = head;
+	while (temp != NULL)
 	{
-		if(temp->sock==sock) {strcpy(name,temp->username);}
-		temp=temp->next;
+		if (temp->sock == sock)
+		{
+			strcpy(name, temp->username);
+		}
+		temp = temp->next;
 	}
 	return name;
 }
 // sock: sock id cua nguoi dung hien tai, text: ten nguoi muon kick
-int kickuser(int sock, char *text){
+int kickuser(int sock, char *text)
+{
 	Member *memb;
 	Member *sender;
 	char *admin;
@@ -708,53 +822,98 @@ int kickuser(int sock, char *text){
 		printf("strange: no member at %d\n", sock);
 		return (0);
 	}
-	admin=group[sender->grid].admin;
-	if (strcmp(admin,current[sock]->username)!=0){
+	admin = group[sender->grid].admin;
+	if (strcmp(admin, current[sock]->username) != 0)
+	{
 		char *errmsg = "you are not admin";
-		sendpkt(sock, KICK, strlen(errmsg)+1, errmsg);
-	} else {
+		sendpkt(sock, KICK, strlen(errmsg) + 1, errmsg);
+	}
+	else
+	{
 		int d = 0;
 		for (memb = group[sender->grid].mems; memb; memb = memb->next)
+		{
+			/*Bỏ qua người gửi */
+			if (memb->sock == sock)
 			{
-				/*Bỏ qua người gửi */
-				if (memb->sock == sock)
-				{			continue;}
-				if (strncmp(memb->name,text,strlen(text))==0){
-					d=1;
-					sendpkt(memb->sock, KICKU,0,NULL); 
-				} 
+				continue;
 			}
-		if (d==1){
-			char *errmsg = "kick success";
-			sendpkt(sock, KICK, strlen(errmsg)+1, errmsg);
-		} else {
-			char *errmsg = "user is not in this room";
-			sendpkt(sock, KICK, strlen(errmsg)+1, errmsg);
+			if (strncmp(memb->name, text, strlen(text)) == 0)
+			{
+				d = 1;
+				sendpkt(memb->sock, KICKU, 0, NULL);
+			}
 		}
-
+		if (d == 1)
+		{
+			char *errmsg = "kick success";
+			sendpkt(sock, KICK, strlen(errmsg) + 1, errmsg);
+		}
+		else
+		{
+			char *errmsg = "user is not in this room";
+			sendpkt(sock, KICK, strlen(errmsg) + 1, errmsg);
+		}
 	}
 	return (1);
 }
-int sendApcept(int sock,char *text){
-	char *tl,*name;
-	tl=strtok(text,"/");
-	name=strtok(NULL,"/");
-	if (strcmp(tl,"y")==0){
+int sendApcept(int sock, char *text)
+{
+	char *tl, *name;
+	tl = strtok(text, "/");
+	name = strtok(NULL, "/");
+	if (strcmp(tl, "y") == 0)
+	{
 		sendpkt(sock, SUCCESS, 0, NULL);
-		sendpkt(try(name),JOIN_ACCEPTED,0,NULL);
-	} else {
+		sendpkt(try(name), JOIN_ACCEPTED, 0, NULL);
+	}
+	else
+	{
 		// sendpkt(sock, SUCCESS, 0, NULL);
 		// sendpkt(try(name),JOIN_ACCEPTED,0,NULL);
 		sendpkt(sock, DONE, 0, NULL);
-		sendpkt(try(name),DONE,0,NULL);
+		sendpkt(try(name), DONE, 0, NULL);
 	}
 }
-int givemsg(int sock, char *text){
+
+int processAddFriend(int sock, char *text)
+{
+	char *tl, *name;
+	tl = strtok(text, "/");
+	name = strtok(NULL, "/");
+	if (strcmp(tl, "y") == 0)
+	{
+		node *temp = findnamebysock(sock);
+		strcat(temp->friend, "/");
+		strcat(temp->friend, name);
+		node *temp2 = head;
+
+		while (temp2 != NULL)
+		{
+			if (strcmp(temp2->username, name) == 0)
+			{
+				strcat(temp2->friend, "/");
+				strcat(temp2->friend, temp->username);
+			}
+			temp2 = temp2->next;
+		}
+		writeDataUser();
+		sendpkt(sock, FRIEND_ACCEPT, 0, NULL);
+		sendpkt(try(name), FRIEND_ACCEPT, 0, NULL);
+	}
+	else
+	{
+		sendpkt(sock, FRIEND_REJECT, 0, NULL);
+		sendpkt(try(name), FRIEND_REJECT, 0, NULL);
+	}
+}
+int givemsg(int sock, char *text)
+{
 	char pktbufr[MAXPKTLEN];
 	char *bufrptr;
 	long bufrlen;
 	int tnt;
-	node *temp= head;
+	node *temp = head;
 	tnt = findbysock(sock);
 	/* Thêm tên người gửi trc văn bản tin nhắn */
 	bufrptr = pktbufr;
@@ -762,10 +921,10 @@ int givemsg(int sock, char *text){
 	bufrptr += strlen(bufrptr) + 1;
 	bufrlen = bufrptr - pktbufr;
 	printf("other sock %d\n", findother(sock));
-	sendpkt(findother(sock),USER_TEXT1, bufrlen,pktbufr);
+	sendpkt(findother(sock), USER_TEXT1, bufrlen, pktbufr);
 	printf("%s", pktbufr);
 	/* Truyên tin nhắn đến các thành viên khác trong phòng*/
-		/*Bỏ qua người gửi */
+	/*Bỏ qua người gửi */
 	fflush(stdin);
 	printf("%s", text);
 	return (1);
@@ -775,9 +934,9 @@ int toUser(int sock, char *text)
 	Member *memb;
 	Member *sender;
 	char pktbufr[MAXPKTLEN];
-	char *bufrptr,bufrptr1[MAXPKTLEN],*name,*content;
+	char *bufrptr, bufrptr1[MAXPKTLEN], *name, *content;
 	long bufrlen;
-	
+
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
 	sender = findmemberbysock(sock);
@@ -787,20 +946,20 @@ int toUser(int sock, char *text)
 		printf("strange: no member at %d\n", sock);
 		return (0);
 	}
-	//temp = findnamebysock(sock);
+	// temp = findnamebysock(sock);
 	/* Thêm tên người gửi trc văn bản tin nhắn */
 	bufrptr = pktbufr;
 	strcpy(bufrptr, temp->username);
 	strcpy(bufrptr1, temp->username);
 	// bufrptr1 = strdup(temp->username);
-	strcat(bufrptr1,"/");
-	
+	strcat(bufrptr1, "/");
+
 	name = strtok(text, "/");
-	content = strtok(NULL,"/");
+	content = strtok(NULL, "/");
 	// name[strlen(name) - 1] = '\0';
-	//char m[MAXLEN];
+	// char m[MAXLEN];
 	strcat(bufrptr1, content);
-	printf("%s\n",bufrptr1);
+	printf("%s\n", bufrptr1);
 	bufrptr += strlen(bufrptr) + 1;
 	strcpy(bufrptr, text);
 	bufrptr += strlen(bufrptr) + 1;
@@ -810,12 +969,15 @@ int toUser(int sock, char *text)
 	{
 		/*Bỏ qua người gửi */
 		if (memb->sock == sock)
-		{			continue;}
-		if (strncmp(memb->name,name,strlen(name)-1)==0){
-			sendpkt(memb->sock, USER_TEXT, strlen(bufrptr1)+1, bufrptr1); /* Gửi tin nhắn cho các thành viên khác trong phòng trò chuyện (TCP là song công hoàn toàn) */
+		{
+			continue;
+		}
+		if (strncmp(memb->name, name, strlen(name) - 1) == 0)
+		{
+			sendpkt(memb->sock, USER_TEXT, strlen(bufrptr1) + 1, bufrptr1); /* Gửi tin nhắn cho các thành viên khác trong phòng trò chuyện (TCP là song công hoàn toàn) */
 		}
 	}
-	//printf("%d\n", sender->sock);
+	// printf("%d\n", sender->sock);
 	printf("%s: %s", temp->username, text);
 	return (1);
 }
@@ -825,9 +987,9 @@ int relaymsg(int sock, char *text)
 	Member *memb;
 	Member *sender;
 	char pktbufr[MAXPKTLEN];
-	char *bufrptr,bufrptr1[MAXPKTLEN];
+	char *bufrptr, bufrptr1[MAXPKTLEN];
 	long bufrlen;
-	//char m[MAXLEN];
+	// char m[MAXLEN];
 	node *temp;
 	/* Nhận thông tin của thành viên qua socket */
 	sender = findmemberbysock(sock);
@@ -837,15 +999,15 @@ int relaymsg(int sock, char *text)
 		printf("strange: no member at %d\n", sock);
 		return (0);
 	}
-	//temp = findnamebysock(sock);
+	// temp = findnamebysock(sock);
 	/* Thêm tên người gửi trc văn bản tin nhắn */
 	bufrptr = pktbufr;
 	strcpy(bufrptr, temp->username);
 	strcpy(bufrptr1, temp->username);
 	// bufrptr1 = strdup(temp->username);
-	strcat(bufrptr1,"/");
+	strcat(bufrptr1, "/");
 	strcat(bufrptr1, text);
-	printf("%s\n",bufrptr1);
+	printf("%s\n", bufrptr1);
 	bufrptr += strlen(bufrptr) + 1;
 	strcpy(bufrptr, text);
 	bufrptr += strlen(bufrptr) + 1;
@@ -855,16 +1017,19 @@ int relaymsg(int sock, char *text)
 	{
 		/*Bỏ qua người gửi */
 		if (memb->sock == sock)
-		{			continue;}
+		{
+			continue;
+		}
 		sendpkt(memb->sock, USER_TEXT, bufrlen, bufrptr1); /* Gửi tin nhắn cho các thành viên khác trong phòng trò chuyện (TCP là song công hoàn toàn) */
 	}
-	//printf("%d\n", sender->sock);
+	// printf("%d\n", sender->sock);
 	printf("%s: %s", temp->username, text);
 	return (1);
 }
 
-int repmenu(int sock, char *text){
-	sendpkt(sock,MENU,strlen(text),text);
+int repmenu(int sock, char *text)
+{
+	sendpkt(sock, MENU, strlen(text), text);
 	return (1);
 }
 
@@ -959,24 +1124,24 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					//CHEN LOGIN VAO DAY
+					// CHEN LOGIN VAO DAY
 					char *gname, *mname, *username, *pass, *name, *uname, *status;
 					char *cap;
 					/* loại hành động */
-				
+
 					switch (pkt->type)
 					{
-						
+
 					case REGISTER:
-					
+
 						username = strtok(pkt->text, "/");
-						pass = strtok(NULL,"/");
+						pass = strtok(NULL, "/");
 						processRegister(sock, username, pass);
 						break;
 					case CREAT_ROOM:
-						
-						name=strtok(pkt->text, "/");
-						cap= strtok(NULL,"/");
+
+						name = strtok(pkt->text, "/");
+						cap = strtok(NULL, "/");
 						// name = pkt->text;
 						// cap = name + strlen(name) + 1;
 						processCreatRoom(sock, name, cap);
@@ -988,7 +1153,7 @@ int main(int argc, char *argv[])
 						break;
 					case LOG_IN:
 						username = strtok(pkt->text, "/");
-						pass = strtok(NULL,"/");
+						pass = strtok(NULL, "/");
 						// username = pkt->text;
 						// pass = username + strlen(username) + 1;
 						// printf("%s",pass);
@@ -1000,10 +1165,21 @@ int main(int argc, char *argv[])
 						break;
 					case JOIN_2:
 						username = pkt->text;
-						join11(sock,username, current[sock]->username);
+						join11(sock, username, current[sock]->username);
+						break;
+					case ADD_FRIEND:
+						username = pkt->text;
+						requestAddFriend(sock, username, current[sock]->username);
+						break;
+					case UN_FRIEND:
+						username = pkt->text;
+						requestUnFriend(sock, username, current[sock]->username);
+						break;
+					case REP_ADD_FRIEND:
+						processAddFriend(sock, pkt->text);
 						break;
 					case LIST_GROUPS:
-						
+
 						listgroups(sock);
 						break;
 					case JOIN_GROUP:
@@ -1017,7 +1193,6 @@ int main(int argc, char *argv[])
 						listFriend(sock);
 						break;
 					case LIST_USERGR:
-						
 						listUserGr(sock);
 						break;
 					case LEAVE_GROUP:
@@ -1027,23 +1202,23 @@ int main(int argc, char *argv[])
 						toUser(sock, pkt->text);
 						break;
 					case USER_TEXT:
-						
+
 						relaymsg(sock, pkt->text);
 						break;
 					case MENU:
-						repmenu(sock,pkt->text);
+						repmenu(sock, pkt->text);
 						break;
 					case USER_TEXT1:
-						givemsg(sock,pkt->text);
+						givemsg(sock, pkt->text);
 						break;
 					case QUIT:
 						leave11(sock);
 						break;
 					case REQUEST1:
-						sendApcept(sock,pkt->text);
+						sendApcept(sock, pkt->text);
 						break;
 					case KICK:
-						kickuser(sock,pkt->text);
+						kickuser(sock, pkt->text);
 						break;
 					}
 					/*Cấu trúc gói phát hành */

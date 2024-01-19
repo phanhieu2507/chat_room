@@ -438,6 +438,138 @@ int join11(int sock)
 	}
 }
 
+int addFriend(int sock)
+{
+
+	Packet *pkt;
+	char bufr[MAXPKTLEN];
+	char *bufrptr;
+	int bufrlen;
+	char *uname;
+	char *mname;
+
+	/* Yêu cầu thông tin phòng chat */
+	sendpkt(sock, LISTUSERON, 0, NULL);
+
+	/* Nhận phản hồi từ phòng chat */
+	pkt = recvpkt(sock);
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+
+	if (pkt->type != LISTUSERON)
+	{
+		fprintf(stderr, "error: unexpected reply from server\n");
+		exit(1);
+	}
+
+	/* Hiển thị ten nguoi muon ket ban */
+	showUser1(pkt->text);
+
+	/* Tên nguoi ban */
+	printf("which account?\n ");
+
+	fgets(bufr, MAXPKTLEN, stdin);
+	bufr[strlen(bufr) - 1] = '\0';
+	uname = strdup(bufr);
+	sendpkt(sock, ADD_FRIEND, strlen(uname) + 1, uname); // gui yeu cau muon ket ban toi server
+
+	/* Nhận phản hồi từ server */
+	pkt = recvpkt(sock);
+
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+	if (pkt->type != FRIEND_ACCEPT && pkt->type != FRIEND_REJECT)
+	{
+		fprintf(stderr, "error: unexpected reply from server7\n");
+		exit(1);
+	}
+
+	/*Bi tu choi ket ban*/
+	if (pkt->type == FRIEND_REJECT)
+	{
+		printf("admin: %s refuse", uname);
+		return (0);
+	}
+	else /* Ket ban thành công */
+	{
+		printf("admin: You be friend with '%s'!\n", uname);
+		// free(uname);
+		return (1);
+	}
+}
+int unFriend(int sock)
+{
+
+	Packet *pkt;
+	char bufr[MAXPKTLEN];
+	char *bufrptr;
+	int bufrlen;
+	char *uname;
+	char *mname;
+
+	/* Yêu cầu thông tin phòng chat */
+	sendpkt(sock, LIST_FRIENDS, 0, NULL);
+
+	/* Nhận phản hồi từ phòng chat */
+	pkt = recvpkt(sock);
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+
+	if (pkt->type != LIST_FRIENDS)
+	{
+		fprintf(stderr, "error: unexpected reply from server\n");
+		exit(1);
+	}
+
+	/* Hiển thị ten nguoi muon ket ban */
+	showFriend(pkt->text);
+
+	/* Tên nguoi ban */
+	printf("which account?\n ");
+
+	fgets(bufr, MAXPKTLEN, stdin);
+	bufr[strlen(bufr) - 1] = '\0';
+	uname = strdup(bufr);
+	sendpkt(sock, UN_FRIEND, strlen(uname) + 1, uname); // gui yeu cau muon ket ban toi server
+
+	/* Nhận phản hồi từ server */
+	pkt = recvpkt(sock);
+
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+	if (pkt->type != SUCCESS && pkt->type != FAILED)
+	{
+		fprintf(stderr, "error: unexpected reply from server7\n");
+		exit(1);
+	}
+
+	/*unfriend thanh cong*/
+	if (pkt->type == SUCCESS)
+	{
+		printf("admin: You have unfriend with '%s'!\n", uname);
+		
+		return (0);
+	}
+	else /* Ket ban thành công */
+	{
+		printf("admin: failed, you and %s still be friend", uname);
+		// free(uname);
+		return (1);
+	}
+}
+
 int login(int sock, int *check)
 {
 	Packet *pkt;
@@ -801,7 +933,7 @@ int main(int argc, char *argv[])
 	{
 		/*Menu login/logout */
 		menu();
-		
+
 		strcpy(choice, " ");
 		__fpurge(stdin);
 		scanf("%s", &choice);
@@ -817,14 +949,14 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		else if (strcmp(choice, "2") == 0)
-		{   
+		{
 			if (!login(sock, check))
-			{	
+			{
 				continue;
 			}
 			chatFunction();
 			do
-			{		printf("tempfds");
+			{
 				__fpurge(stdin);
 				tempfds = clientfds;
 				if (select(FD_SETSIZE, &tempfds, NULL, NULL, NULL) == -1)
@@ -855,7 +987,7 @@ int main(int argc, char *argv[])
 					}
 
 					/* Hiển thị tin nhắn văn bản */
-					if (pkt1->type != MENU && pkt1->type != REQUEST)
+					if (pkt1->type != MENU && pkt1->type != REQUEST && pkt1->type != REQUEST_ADD_FRIEND)
 					{
 						fprintf(stderr, "error: unexpected reply from server\n");
 						exit(1);
@@ -939,7 +1071,35 @@ int main(int argc, char *argv[])
 						{
 							// chatFunction();
 						}
-					
+
+						chatFunction();
+						// break;
+					}
+					else if (pkt1->type == REQUEST_ADD_FRIEND) // duoc user khac yeu cau add friend
+					{
+						Packet *pkt2;
+						int pkt1_len = pkt1->lent;
+						char *uname;
+						char bufr[MAXPKTLEN], tl[MAXPKTLEN];
+						printf("admin: '%s' want to be friend with you 'y' to accept or 'n' to decline \n", pkt1->text);
+						/* Tiếp tục trò chuyện */
+						fgets(bufr, MAXPKTLEN, stdin);
+						bufr[strlen(bufr) - 1] = '\0';
+						strcpy(tl, bufr);
+						strcat(tl, "/");
+						strcat(tl, pkt1->text);
+						sendpkt(sock, REP_ADD_FRIEND, strlen(tl) + 1, tl); // DONG Y HOAC KHONG
+						pkt2 = recvpkt(sock);
+						if (pkt2->type == FRIEND_ACCEPT)
+						{ // NEU DONG Y CHAT 11
+							printf("admin: You be friend with '%s' \n", pkt1->text);
+						}
+
+						else
+						{
+							printf("admin: Decline successful' \n");
+						}
+
 						chatFunction();
 						// break;
 					}
@@ -948,12 +1108,6 @@ int main(int argc, char *argv[])
 						choiceFunc = atoi(pkt1->text);
 						switch (choiceFunc)
 						{
-						case 7:
-						{
-							
-							sendListFriend(sock);
-							break;
-						}
 						case 0:
 						{
 							sendListOn(sock);
@@ -1458,7 +1612,24 @@ int main(int argc, char *argv[])
 							logout(sock, check);
 							break;
 						}
+						case 7:
+						{
+
+							sendListFriend(sock);
+							break;
 						}
+						case 8:
+						{
+							addFriend(sock);
+							break;
+						}
+						case 9:
+						{
+							unFriend(sock);
+							break;
+						}
+						}
+
 						if (choiceFunc != 6)
 						{
 							chatFunction();
