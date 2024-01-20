@@ -94,6 +94,19 @@ void showFriend(char *text)
 	}
 }
 
+void showOffMsg(char *text)
+{
+		char *tptr;
+	tptr = text;
+	printf("%18s\n", "Message");
+	char *msg;
+	msg = strtok(text, "/");
+	while (msg != NULL)
+	{
+		printf("%18s\n", msg);
+		msg = strtok(NULL, "/");
+	}
+}
 int update(int sock)
 {
 	Packet *pkt;
@@ -178,10 +191,10 @@ int sendListOn(int sock)
 int sendListFriend(int sock)
 {
 	Packet *pkt;
-	/* Yêu cầu thông tin phòng chat */
+	/* Yêu cầu thông tin  */
 	sendpkt(sock, LIST_FRIENDS, 0, NULL);
 
-	/* Nhận phản hồi từ phòng chat */
+	/* Nhận phản hồi từ  */
 	pkt = recvpkt(sock);
 
 	if (!pkt)
@@ -196,8 +209,35 @@ int sendListFriend(int sock)
 		exit(1);
 	}
 
-	/* Hiển thị phòng chat */
+	/* Hiển thị dan sach ban be */
 	showFriend(pkt->text);
+	// showUser(pkt->lent, pkt->text);
+	return 1;
+}
+
+int offlineMsg(int sock)
+{
+	Packet *pkt;
+	/* Yêu cầu thông tin  */
+	sendpkt(sock, LIST_OFF_MESSAGES, 0, NULL);
+
+	/* Nhận phản hồi từ  */
+	pkt = recvpkt(sock);
+
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+
+	if (pkt->type != LIST_OFF_MESSAGES)
+	{
+		fprintf(stderr, "error: unexpected reply from server2\n");
+		exit(1);
+	}
+
+	/* Hiển thị dan sach ban be */
+	showOffMsg(pkt->text);
 	// showUser(pkt->lent, pkt->text);
 	return 1;
 }
@@ -565,6 +605,85 @@ int unFriend(int sock)
 	else /* Ket ban thành công */
 	{
 		printf("admin: failed, you and %s still be friend", uname);
+		// free(uname);
+		return (1);
+	}
+}
+
+int sendOffMsg(int sock)
+{
+
+	Packet *pkt;
+	char bufr[MAXPKTLEN];
+	char bufr1[MAXPKTLEN];
+	char *bufrptr;
+	int bufrlen;
+	int bufrlen1;
+	char *unameAndMsg;
+	
+
+	/* Yêu cầu thông tin phòng chat */
+	sendpkt(sock, LIST_FRIENDS, 0, NULL);
+
+	/* Nhận phản hồi từ phòng chat */
+	pkt = recvpkt(sock);
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+
+	if (pkt->type != LIST_FRIENDS)
+	{
+		fprintf(stderr, "error: unexpected reply from server\n");
+		exit(1);
+	}
+
+	/* Hiển thị ten nguoi muon ket ban */
+	showFriend(pkt->text);
+
+	/* Tên nguoi ban */
+	printf("which account?\n");
+fgets(bufr, MAXPKTLEN, stdin);
+
+printf("message:\n");
+fgets(bufr1, MAXPKTLEN, stdin);
+
+// Loại bỏ ký tự xuống dòng cuối cùng
+bufr[strlen(bufr) - 1] = '/';
+bufr1[strlen(bufr1) - 1] = '\0';
+// Kết hợp tên người nhận và nội dung tin nhắn
+strcat(bufr, bufr1);
+
+unameAndMsg = strdup(bufr);
+sendpkt(sock, SEND_OFF_MESSAGES, strlen(unameAndMsg) + 1, unameAndMsg); // gui yeu cau muon chuyen tin nhan toi server
+
+	/* Nhận phản hồi từ server */
+	pkt = recvpkt(sock);
+
+	if (!pkt)
+	{
+		printf("error: server died\n");
+		exit(1);
+	}
+	if (pkt->type != SUCCESS && pkt->type != FAILED)
+	{
+		fprintf(stderr, "error: unexpected reply from server7\n");
+		exit(1);
+	}
+
+	/*send msg thanh cong*/
+	if (pkt->type == SUCCESS)
+	{
+		printf("admin: Sended message !\n");
+		printf("%s\n", pkt->text);
+		
+		return (0);
+	}
+	else /* sendmsg that bai */
+	{
+		printf("admin: failed, cannot send message ! \n");
+		printf("%s\n", pkt->text);
 		// free(uname);
 		return (1);
 	}
@@ -1626,6 +1745,16 @@ int main(int argc, char *argv[])
 						case 9:
 						{
 							unFriend(sock);
+							break;
+						}
+						case 10:
+						{
+							offlineMsg(sock);
+							break;
+						}
+						case 11:
+						{
+							sendOffMsg(sock);
 							break;
 						}
 						}

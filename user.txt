@@ -1,20 +1,19 @@
-phan 123  1 NULL
-HMN 123 1 22051 NULL
-NKT 123 1 22051 NULL
-hthq1 hthq1 3 1 NULL
-quynh quynh 3 32765 NULL
-hq hq 1 32765 NULL
-hoanganh hoanganh23 1 32766 NULL
-cas v 1 32767 NULL
-popo 123 1 32767 NULL
-a a 3 32767 NULL
-b b 1 32767 NULL
-c c 1 32767 NULL
-phuonganh 123 1 32765 NULL
-ha ha 1 32764 NULL
-abcac asbca 1 32765 NULL
-d d 1 32667 NULL
-hoquynh hoquynh 1 32667 NULL
-hthq hthq 1 32765 NULL
-hmn 123 1 32766 NULL
-phanhieu 123456 2 32698 NULL
+phanhieu 123456 2 32698 NULL/hthq/ha NULL/hieu
+hmn 123 1 32766 NULL NULL
+hthq hthq 1 32765 NULL/phanhieu NULL/phanhieu:khongdithithoi
+hoquynh hoquynh 1 32667 NULL NULL
+d d 1 32667 NULL NULL
+abcac asbca 1 32765 NULL NULL
+ha ha 1 32764 NULL/phanhieu NULL/phanhieu:dichoi/phanhieu:dichoinao
+phuonganh 123 1 32765 NULL NULL
+c c 1 32767 NULL NULL
+b b 1 32767 NULL NULL
+a a 3 32767 NULL/b NULL
+popo 123 1 32767 NULL NULL
+cas v 1 32767 NULL NULL
+hoanganh hoanganh23 1 32766 NULL NULL
+hq hq 1 32765 NULL NULL
+quynh quynh 3 32765 NULL NULL
+hthq1 hthq1 3 1 NULL NULL
+NKT 123 1 22051 NULL NULL
+HMN 123 1 22051 NULL/hmn/hthq/ha NULL

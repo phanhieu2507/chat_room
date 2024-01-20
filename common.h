@@ -42,6 +42,8 @@
 #define FRIEND_REJECT 32
 #define UN_FRIEND 33
 #define FAILED 34
+#define LIST_OFF_MESSAGES 35
+#define SEND_OFF_MESSAGES 36
 
 /* Cấu truct _packet */
 

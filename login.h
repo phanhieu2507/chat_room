@@ -11,6 +11,7 @@ typedef struct Node{ //user node
 	int ID;
 	char status2[30];
 	char friend[200];
+	char offMsg[300];
 	struct Node *next;
 } node;
 
@@ -24,7 +25,7 @@ typedef struct Node1{ //room node
 
 extern node *head; // first node
 extern node1 *head1;
-void addNode(char* user, char* password, char* status2, int status, char* friend);
+void addNode(char* user, char* password, char* status2, int status, char* friend, char* offMsg);
 void addNodeRoom(char* name, char *cap, char *admin);
 node *checkExist(char* user);
 node1 *checkExistRoom(char* name);

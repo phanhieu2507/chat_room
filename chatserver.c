@@ -34,10 +34,11 @@ void readFile()
 	int status;
 	char status2[MAXLEN];
 	char friend[MAXLEN];
+	char offMsg[500];
 	while (feof(fp) == 0)
 	{
-		fscanf(fp, "%s %s %s %d %s", user, pass, status2, &status, &friend);
-		addNode(user, pass, status2, status, friend);
+		fscanf(fp, "%s %s %s %d %s %s", user, pass, status2, &status, &friend, &offMsg);
+		addNode(user, pass, status2, status, friend, offMsg);
 		max++;
 	}
 }
@@ -48,7 +49,7 @@ void writeDataUser()
 	FILE *fp = fopen("user.txt", "w+");
 	while (temp != NULL)
 	{
-		fprintf(fp, "%s %s %s %d %s", temp->username, temp->pass, temp->status2, temp->status, temp->friend);
+		fprintf(fp, "%s %s %s %d %s %s", temp->username, temp->pass, temp->status2, temp->status, temp->friend, temp->offMsg);
 		temp = temp->next;
 		if (temp != NULL)
 			fprintf(fp, "\n");
@@ -122,7 +123,7 @@ int findgroup(char *name)
 	}
 	return (-1);
 }
-/* Tim tem user */
+/* Tim tem user online*/
 int findname(char *name)
 {
 	int m = 0;
@@ -138,22 +139,40 @@ int findname(char *name)
 	}
 	return m;
 }
-void removeSubstring(char *str, const char *sub) {
-    // Tạo một chuỗi tạm với dấu '/' và chuỗi con
-    char temp[100];
-    strcpy(temp, "/");
-    strcat(temp, sub);
+//tim ten user
+int findname2(char *name)
+{
+	int m = 0;
+	node *temp = head;
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, name) == 0)
+		{
+			m = 1;
+		}
+		temp = temp->next;
+	}
+	return m;
+}
 
-    // Nối chuỗi tạm vào chuỗi gốc
-    strcat(str, temp);
+void removeSubstring(char *str, const char *sub)
+{
+	// Tạo một chuỗi tạm với dấu '/' và chuỗi con
+	char temp[100];
+	strcpy(temp, "/");
+	strcat(temp, sub);
 
-    char *pos = strstr(str, temp);
+	// Nối chuỗi tạm vào chuỗi gốc
+	strcat(str, temp);
 
-    while (pos != NULL) {
-        size_t len = strlen(temp);
-        memmove(pos, pos + len, strlen(pos + len) + 1);
-        pos = strstr(str, temp);
-    }
+	char *pos = strstr(str, temp);
+
+	while (pos != NULL)
+	{
+		size_t len = strlen(temp);
+		memmove(pos, pos + len, strlen(pos + len) + 1);
+		pos = strstr(str, temp);
+	}
 }
 
 /* ͨTìm thông tin thành viên trong nhom theo tên */
@@ -368,6 +387,26 @@ int listFriend(int sock)
 	sendpkt(sock, LIST_FRIENDS, strlen(bufrptr1) + 1, bufrptr1);
 	return (1);
 }
+int listOfflineMsg(int sock)
+{
+	char bufrptr1[MAXPKTLEN];
+	node *temp = head;
+	node *user;
+	user = findnamebysock(sock);
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, user->username) == 0) // tim user trong node
+		{
+			strcpy(bufrptr1, temp->offMsg);
+			break;
+		}
+		temp = temp->next;
+	}
+
+	/* Gửi tin nhắn đến yêu cầu của khách hàng */
+	sendpkt(sock, LIST_OFF_MESSAGES, strlen(bufrptr1) + 1, bufrptr1);
+	return (1);
+}
 
 /* Gửi tất cả thông tin phòng trò chuyện cho khách hàng */
 int listgroups(int sock)
@@ -446,7 +485,7 @@ int processRegister(int sock, char *username, char *pass)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	addNode(username, pass, "", 1, "NULL");
+	addNode(username, pass, "", 1, "NULL", "NULL");
 	writeFile();
 	max++;
 	char *succmsg = "Register successful!\n";
@@ -717,21 +756,60 @@ int requestUnFriend(int sock, char *uname, char *username)
 		sendpkt(sock, FAILED, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
 		return (0);
 	}
-	if (!findname(uname))
+	if (!findname2(uname))
 	{
 		char *errmsg = "This user isn't available!";
 		sendpkt(sock, FAILED, strlen(errmsg), errmsg);
 		return (0);
 	}
 	printf("unfriend %s - %s\n", username, uname);
-	
+
 	node *temp = head;
-	while(temp != NULL){
-		if(strcmp(temp->username,uname) == 0 || strcmp(temp->username,username) == 0){
-			if(strcmp(temp->username,uname) == 0){
-				removeSubstring(temp->friend,username);
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, uname) == 0 || strcmp(temp->username, username) == 0)
+		{
+			if (strcmp(temp->username, uname) == 0)
+			{
+				removeSubstring(temp->friend, username);
 			}
-			else removeSubstring(temp->friend, uname);
+			else
+				removeSubstring(temp->friend, uname);
+		}
+		temp = temp->next;
+	}
+	writeDataUser();
+	sendpkt(sock, SUCCESS, strlen(current[sock]->username) + 1, current[sock]->username);
+
+	return (1);
+}
+
+int requestSendOffMessage(int sock, char *uname, char *username, char *msg)
+{
+	/* Không thể tự huy ket ban với bản thân */
+	if (strcmp(current[sock]->username, uname) == 0)
+	{
+		char *errmsg = "Can't send message to my self";
+		sendpkt(sock, FAILED, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
+		return (0);
+	}
+	if (!findname2(uname))
+	{
+		char *errmsg = "This user isn't available!";
+		sendpkt(sock, FAILED, strlen(errmsg), errmsg);
+		return (0);
+	}
+	printf("send message offline %s - %s: %s\n", username, uname, msg);
+
+	node *temp = head;
+	while (temp != NULL)
+	{
+		if (strcmp(temp->username, uname) == 0)
+		{
+			strcat(temp->offMsg, "/");
+			strcat(temp->offMsg, username);
+			strcat(temp->offMsg, ":");
+			strcat(temp->offMsg, msg);
 		}
 		temp = temp->next;
 	}
@@ -1125,7 +1203,7 @@ int main(int argc, char *argv[])
 				else
 				{
 					// CHEN LOGIN VAO DAY
-					char *gname, *mname, *username, *pass, *name, *uname, *status;
+					char *gname, *mname, *username, *pass, *name, *uname, *status, *msg;
 					char *cap;
 					/* loại hành động */
 
@@ -1175,6 +1253,11 @@ int main(int argc, char *argv[])
 						username = pkt->text;
 						requestUnFriend(sock, username, current[sock]->username);
 						break;
+					case SEND_OFF_MESSAGES:
+						username = strtok(pkt->text, "/");
+						msg = strtok(NULL, "/");
+						requestSendOffMessage(sock, username, current[sock]->username, msg);
+						break;
 					case REP_ADD_FRIEND:
 						processAddFriend(sock, pkt->text);
 						break;
@@ -1191,6 +1274,9 @@ int main(int argc, char *argv[])
 						break;
 					case LIST_FRIENDS:
 						listFriend(sock);
+						break;
+					case LIST_OFF_MESSAGES:
+						listOfflineMsg(sock);
 						break;
 					case LIST_USERGR:
 						listUserGr(sock);
