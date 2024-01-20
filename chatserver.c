@@ -446,7 +446,7 @@ int processRegister(int sock, char *username, char *pass)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	addNode(username, pass, "", 1, NULL);
+	addNode(username, pass, "", 1, "NULL");
 	writeFile();
 	max++;
 	char *succmsg = "Register successful!\n";

@@ -96,7 +96,7 @@ void writeFile(){ //ghi lai thong tin vao file
 	node *temp = head;
 	FILE *fp = fopen("user.txt", "w+");
 	while(temp!=NULL){
-		fprintf(fp, "%s %s %s %d", temp->username, temp->pass, temp->status2,  temp->status);
+		fprintf(fp, "%s %s %s %d %s", temp->username, temp->pass, temp->status2,  temp->status, "NULL");
 		temp = temp->next;
 		if(temp!=NULL) fprintf(fp,"\n");
 	}

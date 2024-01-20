@@ -1,0 +1,49 @@
+// .vscode/launch.json
+
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug chatclient",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/chatclient",
+        "args": [ "127.0.0.1",
+        "5558"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        "preLaunchTask": "buildChatClient"
+      },
+      {
+        "name": "Debug chatserver",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/chatserver",
+        "args": ["5558"],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ],
+        "preLaunchTask": "buildChatServer"
+      }
+    ]
+  }
+  
