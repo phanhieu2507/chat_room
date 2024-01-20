@@ -44,6 +44,11 @@
 #define FAILED 34
 #define LIST_OFF_MESSAGES 35
 #define SEND_OFF_MESSAGES 36
+#define ADD_MEMBER 37
+#define ASK_MEMBER 38
+#define MEMBER_ANSWER 39
+#define MEMBER_ACCEPT 40
+#define MEMBER_REJECT 41
 
 /* Cấu truct _packet */
 

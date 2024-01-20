@@ -985,6 +985,45 @@ int processAddFriend(int sock, char *text)
 		sendpkt(try(name), FRIEND_REJECT, 0, NULL);
 	}
 }
+
+int processAddMember(int sock, char *text){
+	char *tl, *name;
+	tl = strtok(text,"/");
+	name = strtok(NULL,"/");
+	int grid;
+	Member *memb;
+	Member *admin;
+	node *temp;
+	if(strcmp(tl, "y") == 0)
+	{
+		temp = findnamebysock(sock);
+		admin = findmemberbysock(try(name));
+		grid = admin->grid;
+		leavegroup(sock);
+		memb = (Member *)calloc(1, sizeof(Member));
+		memb->name = strdup(temp->username);
+		memb->sock = sock;
+		memb->grid = grid;
+		memb->prev = NULL;
+		memb->next = group[grid].mems;
+		if(group[grid].mems) {
+			group[grid].mems -> prev = memb;
+		}
+		group[grid].mems = memb;
+		printf("Admin: '%s' joined '%s'\n", temp->username, group[grid].name);
+		changeStatus1(sock);
+		group[grid].occu++;
+		printf("%d\n", current[sock]->sock);
+		sendpkt(sock, MEMBER_ACCEPT, 0, NULL);
+		sendpkt(try(name), MEMBER_ACCEPT, 0, NULL);
+		fflush(stdin);
+	}
+	else {
+		sendpkt(sock, MEMBER_REJECT, 0, NULL);
+		sendpkt(try(name), MEMBER_REJECT, 0, NULL);
+	}
+
+}
 int givemsg(int sock, char *text)
 {
 	char pktbufr[MAXPKTLEN];
@@ -1058,6 +1097,48 @@ int toUser(int sock, char *text)
 	// printf("%d\n", sender->sock);
 	printf("%s: %s", temp->username, text);
 	return (1);
+}
+
+//sock: id cua nguoi dung hien tai, text: ten nguoi muon them
+int addMember(int sock, char *text) {
+	Member *memb;
+	Member *sender;
+	char *admin;
+	node *temp;
+
+	sender = findmemberbysock(sock);
+	temp = findnamebysock(sock);
+	if(!sender){
+		printf("strange: no member at %d\n", sock);
+		return (0);
+	}
+	admin = group[sender->grid].admin;
+
+	if(strcmp(admin, current[sock]->username) !=0){
+		char *errmsg = "You are not admin";
+		sendpkt(sock, ADD_MEMBER, strlen(errmsg)+1, errmsg);
+	}
+	else
+	{
+		int d = 0;
+		for(memb = group[sender->grid].mems; memb; memb = memb->next) {
+			if(memb->sock == sock) continue;
+			if(strncmp(memb->name, text, strlen(text)) == 0)
+			{
+				d++;
+			}
+		}
+		if(d == 0) {
+			// char *msg = "Request to join the group has been sent";
+			// sendpkt(sock, ADD_MEMBER, strlen(msg) + 1, msg);
+			sendpkt(try(text), ASK_MEMBER, strlen(current[sock]->username)+1, current[sock]->username);
+		} else {
+			char *msg = "User is already in the room";
+			sendpkt(sock, ADD_MEMBER, strlen(msg) + 1, msg);
+		}
+	}
+
+
 }
 /* Gửi tin nhắn đên các thành viên khác trong phòng chat */
 int relaymsg(int sock, char *text)
@@ -1211,7 +1292,6 @@ int main(int argc, char *argv[])
 					{
 
 					case REGISTER:
-
 						username = strtok(pkt->text, "/");
 						pass = strtok(NULL, "/");
 						processRegister(sock, username, pass);
@@ -1261,8 +1341,10 @@ int main(int argc, char *argv[])
 					case REP_ADD_FRIEND:
 						processAddFriend(sock, pkt->text);
 						break;
+					case MEMBER_ANSWER:
+						processAddMember(sock, pkt->text);
+						break;
 					case LIST_GROUPS:
-
 						listgroups(sock);
 						break;
 					case JOIN_GROUP:
@@ -1286,6 +1368,9 @@ int main(int argc, char *argv[])
 						break;
 					case TO:
 						toUser(sock, pkt->text);
+						break;
+					case ADD_MEMBER:
+						addMember(sock, pkt->text);
 						break;
 					case USER_TEXT:
 
