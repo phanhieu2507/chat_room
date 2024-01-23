@@ -1,4 +1,4 @@
-//Chức năng kết nối máy chủ và máy khách
+// Chức năng kết nối máy chủ và máy khách
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "common.h"
+#include "logger.h"
 
 /*
  Chuẩn bị máy chủ cho các yêu cầu của khách hàng,
@@ -22,100 +23,109 @@
 */
 int startserver(char *port)
 {
-  int     sd;      /* socket mô tả */
-  int     myport;  /* Cổng máy chủ */
+  int sd;     /* socket mô tả */
+  int myport; /* Cổng máy chủ */
 
   /*
-	Gọi hàm socket để tạo mô tả socket TCP
+  Gọi hàm socket để tạo mô tả socket TCP
   */
   sd = socket(PF_INET, SOCK_STREAM, 0);
 
   /*
-   Gọi bind để gán địa chỉ cục bộ cho socket 
+   Gọi bind để gán địa chỉ cục bộ cho socket
   */
   // Lang nghe tat ca dia chi IP
   struct sockaddr_in server_address;
   server_address.sin_family = AF_INET;
-  server_address.sin_addr.s_addr = htonl(INADDR_ANY); 
+  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
   /*Hàm htonl được sử dụng để chuyển đổi INADDR_ANY sang thứ tự byte mạng  */
   server_address.sin_port = htons(atoi(port));
 
-  bind(sd, (struct sockaddr *) &server_address, sizeof(server_address));
+  bind(sd, (struct sockaddr *)&server_address, sizeof(server_address));
 
   /*Gọi listen để đặt sd  của socket phía máy chủ sang trạng thái nghe thụ động và đặt độ dài của hàng đợi chấp nhận thành 20 */
   listen(sd, 20);
 
   int len = sizeof(struct sockaddr);
 
-  getsockname(sd, (struct sockaddr *) &server_address, &len);
+  getsockname(sd, (struct sockaddr *)&server_address, &len);
 
   myport = ntohs(server_address.sin_port);
-  if(myport!=atoi(port)){
+  if (myport != atoi(port))
+  {
     printf("error: server already exist!\n");
+
+    char logMessage[256];
+    snprintf(logMessage, sizeof(logMessage), "Error: Server already exist");
+    writeToLog(logMessage);
     exit(0);
   }
 
   /*Sẵn sàng chấp nhận yêu cầu của khách hàng */
-   printf("admin: started at port: '%d'\n",
-	 myport);
-  return(sd);
+  printf("admin: started at port: '%d'\n",
+         myport);
+	char logMessage[256];
+	snprintf(logMessage, sizeof(logMessage), "Server is running on port %d", myport);
+	writeToLog(logMessage);
+  return (sd);
 }
 
 /*
   Kết nối đến máy chủ, trả về socket đúng.
   Thất bại trả về  -1
 */
-int hooktoserver(char* port, char* addr)
+int hooktoserver(char *port, char *addr)
 {
-	int sd;                 
+  int sd;
 
-	/*
-	Gọi socket để tạo kết nối TCP
-	*/
+  /*
+  Gọi socket để tạo kết nối TCP
+  */
 
-	sd = socket(AF_INET, SOCK_STREAM, 0);
-	
+  sd = socket(AF_INET, SOCK_STREAM, 0);
 
-	struct sockaddr_in address; // thong tin dia chi server
+  struct sockaddr_in address; // thong tin dia chi server
 
-	address.sin_addr.s_addr = inet_addr(addr);
-	address.sin_family = AF_INET;
-	address.sin_port = htons(atoi(port));
+  address.sin_addr.s_addr = inet_addr(addr);
+  address.sin_family = AF_INET;
+  address.sin_port = htons(atoi(port));
 
-	if (connect(sd, (struct sockaddr *) &address, sizeof(address)) < 0)
-	{
-		perror("connecting");
-		exit(1);
-	}
+  if (connect(sd, (struct sockaddr *)&address, sizeof(address)) < 0)
+  {
+    perror("connecting");
+    exit(1);
+  }
 
-	/* Kết nối thành công */
-	printf("admin: connected to server at port: '%s'\n",
-	port);
-	return(sd);
+  /* Kết nối thành công */
+  printf("admin: connected to server at port: '%s'\n",
+         port);
+  return (sd);
 }
 
 /* Đọc thông tin về một ổ cắm từ kernel */
 int readn(int sd, char *buf, int n)
 {
-  int     toberead;
-  char *  ptr;
+  int toberead;
+  char *ptr;
 
   toberead = n; // so byte con lai can doc
   ptr = buf;
-  while (toberead > 0) {
+  while (toberead > 0)
+  {
     int byteread;
 
     byteread = read(sd, ptr, toberead);
-    if (byteread <= 0) {
+    if (byteread <= 0)
+    {
       if (byteread == -1)
-	      perror("read");
-      return(0);
+        perror("read");
+      return (0);
     }
 
     toberead -= byteread;
     ptr += byteread;
   }
-  return(1);
+  return (1);
 }
 
 /* Nhận gói */
@@ -124,40 +134,46 @@ Packet *recvpkt(int sd)
   Packet *pkt;
 
   /* Bộ nhớ đc phân bố rông */
-  pkt = (Packet *) calloc(1, sizeof(Packet));
-  if (!pkt) {
+  pkt = (Packet *)calloc(1, sizeof(Packet));
+  if (!pkt)
+  {
     fprintf(stderr, "error : unable to calloc\n");
-    return(NULL);
+    return (NULL);
   }
 
   /* Đọc loại tin nhắn */
-  if (!readn(sd, (char *) &pkt->type, sizeof(pkt->type))) {
+  if (!readn(sd, (char *)&pkt->type, sizeof(pkt->type)))
+  {
     free(pkt);
-    return(NULL);
+    return (NULL);
   }
 
   /* Đọc độ dài tin nhắn */
-  if (!readn(sd, (char *) &pkt->lent, sizeof(pkt->lent))) {
+  if (!readn(sd, (char *)&pkt->lent, sizeof(pkt->lent)))
+  {
     free(pkt);
-    return(NULL);
+    return (NULL);
   }
   pkt->lent = ntohl(pkt->lent);
 
   /* Phân bổ không gian cho nội dung tin nhắn */
-  if (pkt->lent > 0) {
-    pkt->text = (char *) malloc(pkt->lent);
-    if (!pkt) {
+  if (pkt->lent > 0)
+  {
+    pkt->text = (char *)malloc(pkt->lent);
+    if (!pkt)
+    {
       fprintf(stderr, "error : unable to malloc\n");
-      return(NULL);
+      return (NULL);
     }
 
     /*Đọc tin nhắn văn bản */
-    if (!readn(sd, pkt->text, pkt->lent)) {
+    if (!readn(sd, pkt->text, pkt->lent))
+    {
       freepkt(pkt);
-      return(NULL);
+      return (NULL);
     }
   }
-  return(pkt);
+  return (pkt);
 }
 
 /* Gửi gói */
@@ -169,13 +185,13 @@ int sendpkt(int sd, char typ, long len, char *buf)
   /* Viết loại và độ dài của gói vào socket */
   bcopy(&typ, tmp, sizeof(typ));
   siz = htonl(len); // chuyển từ byte máy chủ sag byte mạng
-  bcopy((char *) &siz, tmp+sizeof(typ), sizeof(len));
+  bcopy((char *)&siz, tmp + sizeof(typ), sizeof(len));
   write(sd, tmp, sizeof(typ) + sizeof(len));
 
   /*Viêt tin nhắn văn bản vào socket*/
   if (len > 0)
-    write(sd, buf, len); //buff: nội dung văn bản 
-  return(1);
+    write(sd, buf, len); // buff: nội dung văn bản
+  return (1);
 }
 
 /*Giải phóng không gian bộ nhớ bị chiếm dụng bởi các gói */
