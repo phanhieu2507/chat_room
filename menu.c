@@ -34,7 +34,7 @@ void chatFunction(){
 	printf("9. Un Friend\n");
 	printf("10. Unread Message\n");
 	printf("11. Send Offline Message\n");
-	printf("Your choice (1-11):\n");
+	printf("Your choice (0-11):\n");
 	//printf("a");
 }
 
