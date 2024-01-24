@@ -72,7 +72,7 @@ void showUser1(char *text)
 	char *tptr;
 	tptr = text;
 	printf("%18s\n", "Username");
-	char *username, *status;
+	char *username;
 	username = strtok(text, "/");
 	while (username != NULL)
 	{
@@ -86,7 +86,7 @@ void showFriend(char *text)
 	char *tptr;
 	tptr = text;
 	printf("%18s\n", "Friendname");
-	char *username, *status;
+	char *username;
 	username = strtok(text, "/");
 	while (username != NULL)
 	{
@@ -106,59 +106,6 @@ void showOffMsg(char *text)
 	{
 		printf("%18s\n", msg);
 		msg = strtok(NULL, "/");
-	}
-}
-int update(int sock)
-{
-	Packet *pkt;
-	char bufr[MAXPKTLEN];
-	char *bufrptr;
-	int bufrlen;
-	char *status;
-	printf("===UPDATE===\n");
-	while (getchar() != '\n')
-		;
-	do
-	{
-		all_emotion();
-		fgets(bufr, MAXPKTLEN, stdin);
-	} while (atoi(bufr) > 4 || atoi(bufr) < 1);
-	bufr[strlen(bufr) - 1] = '\0';
-	if (strcmp(bufr, "") == 0 || strncmp(bufr, QUIT_STRING, strlen(QUIT_STRING)) == 0)
-	{
-		close(sock);
-		exit(0);
-	}
-	status = strdup(bufr);
-
-	/* Gửi tin nhắn */
-	bufrptr = bufr;
-	strcpy(bufrptr, status);
-	bufrptr += strlen(bufrptr) + 1;
-	bufrlen = bufrptr - bufr;
-	sendpkt(sock, UPDATE, bufrlen, bufr);
-	/* Nhận phản hồi từ server */
-	// printf("%s",&bufr);
-	pkt = recvpkt(sock);
-	if (!pkt)
-	{
-		printf("error: server died\n");
-		exit(1);
-	}
-
-	/*Error */
-	if (pkt->type == JOIN_REJECTED)
-	{
-		printf("admin: %s\n", pkt->text);
-		free(status);
-		return (0);
-	}
-	else
-	{
-		// check[sock] = 0;
-		printf("%s!\n", pkt->text);
-		free(status);
-		return 1;
 	}
 }
 
@@ -2093,11 +2040,6 @@ int main(int argc, char *argv[])
 						case 3: /*Xem danh sách phòng */
 						{
 							sendListGr(sock);
-							break;
-						}
-						case 4:
-						{
-							update(sock);
 							break;
 						}
 						case 5:

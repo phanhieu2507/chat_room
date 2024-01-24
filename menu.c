@@ -9,15 +9,6 @@ void menu(){
 	printf("Your choice (1-3):  ");
 }
 
-void all_emotion(){
-	printf("\nStatus\n");
-	printf("-----------------------------------\n");
-	printf("1. Smile\n");
-	printf("2. Sad\n");
-	printf("3. Busy\n");
-	printf("4. Need_Chat\n");
-	printf("Your choice (1-4):  ");
-}
 
 void chatFunction(){
 	printf("\nCHATROOM FUNCTION\n");
@@ -26,7 +17,7 @@ void chatFunction(){
 	printf("1. Create room\n");
 	printf("2. Get in room\n");
 	printf("3. List of rooms\n");
-	printf("4. Update status\n");
+	// printf("4. Update status\n");
 	printf("5. Chat 1vs1\n");
 	printf("6. Sign Out\n");
 	printf("7. List friend\n");

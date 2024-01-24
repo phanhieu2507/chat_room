@@ -179,7 +179,7 @@ Packet *recvpkt(int sd)
 /* Gửi gói */
 int sendpkt(int sd, char typ, long len, char *buf)
 {
-  char tmp[8];
+  char tmp[9];
   long siz;
 
   /* Viết loại và độ dài của gói vào socket */

@@ -13,6 +13,7 @@
           "${workspaceFolder}/chatlinker.c",
           "${workspaceFolder}/login.c",
           "${workspaceFolder}/menu.c",
+          "${workspaceFolder}/logger.c",
           "-o",
           "${workspaceFolder}/chatclient"
         ],
@@ -31,6 +32,7 @@
           "${workspaceFolder}/chatlinker.c",
           "${workspaceFolder}/login.c",
           "${workspaceFolder}/menu.c",
+          "${workspaceFolder}/logger.c",
           "-o",
           "${workspaceFolder}/chatserver"
         ],

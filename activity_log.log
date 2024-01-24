@@ -1,0 +1,52 @@
+[2024-01-24 20:58:13] Error: Server already exist
+[2024-01-24 20:58:26] Server is running on port 5556
+[2024-01-24 20:58:40] New connection from 'localhost' at socket '6'
+[2024-01-24 20:58:49] User at socket 6 requested registration.
+[2024-01-24 20:58:49] Error: Account existed
+[2024-01-24 20:59:03] User at socket 6 requested to login with username 'hieu'.
+[2024-01-24 20:59:10] User at socket 6 requested registration.
+[2024-01-24 20:59:10] Register successful.
+[2024-01-24 20:59:30] User at socket 6 requested to login with username 'hieu'.
+[2024-01-24 20:59:32] 'hieu' at socket 6 requested to show list of users online
+[2024-01-24 20:59:42] New connection from 'localhost' at socket '7'
+[2024-01-24 20:59:49] User at socket 7 requested to login with username 'phanhieu'.
+[2024-01-24 21:00:16] User at socket 7 requested to login with username 'phanhieu'.
+[2024-01-24 21:00:42] User at socket 7 requested to login with username 'd'.
+[2024-01-24 21:01:51] User at socket 7 requested to login with username 'quynh'.
+[2024-01-24 21:04:01] User at socket 7 requested to login with username 'hieuhieu'.
+[2024-01-24 21:04:08] User at socket 7 requested to login with username 'hieuhieu'.
+[2024-01-24 21:04:47] 'hieu' at socket 6 requested to show list of users online
+[2024-01-24 21:05:11] User at socket 6 requested to create a group chat.
+[2024-01-24 21:05:11] 'hieu' at socket 6 requested to join group chat named 'phonghieu'
+[2024-01-24 21:05:11] 'hieu' joined 'phonghieu'
+
+[2024-01-24 21:05:37] 'hieu' at socket 6 requested to show list of users online
+[2024-01-24 21:05:44] 'hieu' at socket 6 requested to add 'hieu' at socket 6 to group chat.
+[2024-01-24 21:05:52] 'hieu' at socket 6 sent a message to the group chat named 'phonghieu'.
+[2024-01-24 21:06:09] Server is running on port 5557
+[2024-01-24 21:06:13] New connection from 'localhost' at socket '6'
+[2024-01-24 21:06:25] User at socket 6 requested to login with username 'hieuhieu'.
+[2024-01-24 21:06:33] New connection from 'localhost' at socket '7'
+[2024-01-24 21:06:48] User at socket 7 requested to login with username 'HMN'.
+[2024-01-24 21:07:49] User at socket 7 requested registration.
+[2024-01-24 21:07:49] Register successful.
+[2024-01-24 21:08:26] User at socket 6 requested to create a group chat.
+[2024-01-24 21:08:26] 'hieuhieu' at socket 6 requested to join group chat named 'abab'
+[2024-01-24 21:08:26] 'hieuhieu' joined 'abab'
+
+[2024-01-24 21:08:29] 'hieuhieu' at socket 6 requested to show list of users online
+[2024-01-24 21:23:41] Server is running on port 5559
+[2024-01-24 21:24:10] New connection from 'localhost' at socket '6'
+[2024-01-24 21:24:17] User at socket 6 requested registration.
+[2024-01-24 21:24:50] Register successful.
+[2024-01-24 21:26:01] User at socket 6 requested registration.
+[2024-01-24 21:41:02] Server is running on port 5559
+[2024-01-24 21:43:23] New connection from 'localhost' at socket '6'
+[2024-01-24 21:43:32] User at socket 6 requested registration.
+[2024-01-24 21:47:38] Server is running on port 5559
+[2024-01-24 21:47:46] New connection from 'localhost' at socket '6'
+[2024-01-24 21:47:51] User at socket 6 requested registration.
+[2024-01-24 21:52:19] Server is running on port 5559
+[2024-01-24 21:52:38] New connection from 'localhost' at socket '6'
+[2024-01-24 21:52:47] User at socket 6 requested registration.
+[2024-01-24 21:52:59] Register successful.

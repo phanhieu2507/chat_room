@@ -33,14 +33,12 @@ void readFile()
 	}
 	char user[MAXLEN];
 	char pass[MAXLEN];
-	int status;
-	char status2[MAXLEN];
 	char friend[MAXLEN];
 	char offMsg[500];
 	while (feof(fp) == 0)
 	{
-		fscanf(fp, "%s %s %s %d %s %s", user, pass, status2, &status, &friend, &offMsg);
-		addNode(user, pass, status2, status, friend, offMsg);
+		fscanf(fp, "%s %s %s %s\n", user, pass, friend, offMsg);
+		addNode(user, pass, friend, offMsg);
 		max++;
 	}
 }
@@ -51,7 +49,7 @@ void writeDataUser()
 	FILE *fp = fopen("user.txt", "w+");
 	while (temp != NULL)
 	{
-		fprintf(fp, "%s %s %s %d %s %s", temp->username, temp->pass, temp->status2, temp->status, temp->friend, temp->offMsg);
+		fprintf(fp, "%s %s %s %s", temp->username, temp->pass, temp->friend, temp->offMsg);
 		temp = temp->next;
 		if (temp != NULL)
 			fprintf(fp, "\n");
@@ -452,12 +450,6 @@ int processLogIn(int sock, char *username, char *pass)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	if (checkStatus(username) == 0)
-	{
-		char *errmsg = "->Account is blocked!\n";
-		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
-		return 0;
-	}
 	if (checkPass(username, pass) == 0)
 	{
 		char *errmsg = "Password is incorrect!\n";
@@ -493,8 +485,8 @@ int processRegister(int sock, char *username, char *pass)
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
-	addNode(username, pass, "", 1, "NULL", "NULL");
-	writeFile();
+	addNode(username, pass, "NULL", "NULL");
+	writeDataUser();
 	max++;
 	char logMessage[256];
 	snprintf(logMessage, sizeof(logMessage), "Register successful.");
@@ -530,25 +522,6 @@ int processCreatRoom(int sock, char *name, char *cap)
 	return 1;
 }
 
-int Update(int sock, char *status, char *username)
-{
-	/*node *temp;
-	while (temp != NULL)
-	{
-		if (strcmp(temp->username, username) == 0)
-		{
-			strcpy(temp->status2, status);
-		}
-		temp = temp->next;
-	}*/
-	strcpy(current[sock]->status2, status);
-	writeFile();
-
-	// printf("%s\n",group[ngroups-1].name);
-	char *succmsg = "Update successful!\n";
-	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
-	return 1;
-}
 
 int processLogout(int sock, char *username)
 {
@@ -1327,7 +1300,7 @@ int main(int argc, char *argv[])
 				else
 				{
 					// CHEN LOGIN VAO DAY
-					char *gname, *mname, *username, *pass, *name, *uname, *status, *msg;
+					char *gname, *mname, *username, *pass, *name, *uname, *msg;
 					char *cap;
 					char logMessage[256];
 					/* loại hành động */
@@ -1348,11 +1321,6 @@ int main(int argc, char *argv[])
 						snprintf(logMessage, sizeof(logMessage), "User at socket %d requested to create a group chat.", sock);
 						writeToLog(logMessage);
 						processCreatRoom(sock, name, cap);
-						break;
-					case UPDATE:
-						printf("a");
-						name = pkt->text;
-						Update(sock, name, current[sock]->username);
 						break;
 					case LOG_IN:
 						username = strtok(pkt->text, "/");

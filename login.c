@@ -10,14 +10,12 @@
 node *head = NULL; // định nghĩa, không phải khai báo
 node1 *head1 = NULL; // định nghĩa, không phải khai báo
 
-void addNode(char* user, char* password, char *status2, int status, char *friend, char *offMsg){ // Them account vao ds lien ket
+void addNode(char* user, char* password, char *friend, char *offMsg){ // Them account vao ds lien ket
 	node *temp = (struct Node*) malloc(sizeof(struct Node));
 	strcpy(temp->username, user);
 	strcpy(temp->pass, password);
-	strcpy(temp->status2,status2);
 	strcpy(temp->friend,friend);
 	strcpy(temp->offMsg,offMsg);
-	temp->status = status; //check xem user da bi block chua. 0: block
 	temp->state = 0; //trang thai online:1, off: 0
 	temp->next = head;
 	head = temp;
@@ -69,35 +67,11 @@ int checkPass(char* user, char* pass){ // check xem pass nhap dung chua??
 	return 0;
 }
 
-int checkStatus(char* user){ //kiem tra trang thai account
-	node *temp = head;
-	while(temp!=NULL){
-		if(strcmp(temp->username, user) == 0){
-			return temp->status;
-		}
-		temp = temp->next;
-	}
-	return -1;
-}
-
-int lockAccount(char* user){ // khoa account
-	node *temp = head;
-	while(temp!=NULL){
-		if(strcmp(temp->username, user) == 0){
-			temp->status = 0;
-			writeFile(head);
-			return 1;
-		}
-		temp = temp->next;
-	}
-	return 0;
-}
-
 void writeFile(){ //ghi lai thong tin vao file
 	node *temp = head;
 	FILE *fp = fopen("user.txt", "w+");
 	while(temp!=NULL){
-		fprintf(fp, "%s %s %s %d %s %s", temp->username, temp->pass, temp->status2,  temp->status, temp->friend, temp->offMsg);
+		fprintf(fp, "%s %s %s %s", temp->username, temp->pass, temp->friend, temp->offMsg);
 		temp = temp->next;
 		if(temp!=NULL) fprintf(fp,"\n");
 	}
@@ -121,7 +95,7 @@ void writeRoomFile(int a){ //ghi lai thong tin vao file
 void printlist(){ // in ra ds lien ket
 	node *temp = head;
 	while(temp!=NULL){
-		printf("%s %s %d\n", temp->username, temp->pass, temp->status);
+		printf("%s %s\n", temp->username, temp->pass);
 		temp = temp->next;
 	}
 }
