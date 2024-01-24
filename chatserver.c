@@ -635,7 +635,7 @@ int try(char *username)
 	return temp->sock;
 }
 
-int try1(char *a)
+void try1(char *a)
 {
 	node *temp = head;
 	while (temp != NULL)
@@ -647,7 +647,7 @@ int try1(char *a)
 		}
 		temp = temp->next;
 	}
-	return temp->sock;
+	
 }
 
 int findbysock(int sock)
