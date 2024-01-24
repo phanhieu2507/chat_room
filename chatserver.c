@@ -1335,7 +1335,7 @@ int main(int argc, char *argv[])
 						writeToLog(logMessage);
 						processLogout(sock, username);
 						break;
-					case JOIN_2:
+					case REQ_CHAT_11:
 						username = pkt->text;
 						join11(sock, username, current[sock]->username);
 						break;
@@ -1423,7 +1423,7 @@ int main(int argc, char *argv[])
 					case QUIT:
 						leave11(sock);
 						break;
-					case REQUEST1:
+					case REP_CHAT_11:
 						sendApcept(sock, pkt->text);
 						break;
 					case KICK:

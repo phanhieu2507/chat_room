@@ -390,7 +390,7 @@ int join11(int sock)
 	fgets(bufr, MAXPKTLEN, stdin);
 	bufr[strlen(bufr) - 1] = '\0';
 	uname = strdup(bufr);
-	sendpkt(sock, JOIN_2, strlen(uname) + 1, uname);
+	sendpkt(sock, REQ_CHAT_11, strlen(uname) + 1, uname);
 
 	/* Nhận phản hồi từ server */
 	pkt = recvpkt(sock);
@@ -1112,7 +1112,7 @@ int main(int argc, char *argv[])
 						strcat(tl, "/");
 						strcat(tl, pkt1->text);
 						// printf("%s",tl);
-						sendpkt(sock, REQUEST1, strlen(tl) + 1, tl); // DONG Y HOAC KHONG
+						sendpkt(sock, REP_CHAT_11, strlen(tl) + 1, tl); // DONG Y HOAC KHONG
 						pkt2 = recvpkt(sock);
 						if (pkt2->type == SUCCESS)
 						{ // NEU DONG Y CHAT 11
@@ -1229,7 +1229,7 @@ int main(int argc, char *argv[])
 										strcpy(tl, bufr);
 										strcat(tl, "/");
 										strcat(tl, pkt->text);
-										sendpkt(sock, REQUEST1, strlen(tl) + 1, tl);
+										sendpkt(sock, REP_CHAT_11, strlen(tl) + 1, tl);
 										pkt2 = recvpkt(sock);
 
 										if (pkt2->type == SUCCESS)
@@ -1466,7 +1466,7 @@ int main(int argc, char *argv[])
 											strcat(tl, "/");
 											strcat(tl, pkt->text);
 											// printf("%s",tl);
-											sendpkt(sock, REQUEST1, strlen(tl) + 1, tl);
+											sendpkt(sock, REP_CHAT_11, strlen(tl) + 1, tl);
 											pkt2 = recvpkt(sock);
 											if (pkt2->type == SUCCESS)
 											{
@@ -1589,7 +1589,7 @@ int main(int argc, char *argv[])
 															strcpy(tl, bufr);
 															strcat(tl, "/");
 															strcat(tl, pkt->text);
-															sendpkt(sock, REQUEST1, strlen(tl) + 1, tl);
+															sendpkt(sock, REP_CHAT_11, strlen(tl) + 1, tl);
 															pkt2 = recvpkt(sock);
 
 															if (pkt2->type == SUCCESS)
@@ -1880,7 +1880,7 @@ int main(int argc, char *argv[])
 											strcat(tl, "/");
 											strcat(tl, pkt->text);
 											// printf("%s",tl);
-											sendpkt(sock, REQUEST1, strlen(tl) + 1, tl);
+											sendpkt(sock, REP_CHAT_11, strlen(tl) + 1, tl);
 											pkt2 = recvpkt(sock);
 											if (pkt2->type == SUCCESS)
 											{

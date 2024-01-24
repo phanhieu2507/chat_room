@@ -20,7 +20,7 @@
 #define CREAT_ROOM     10
 #define UNDONE         11
 #define LISTUSERON     12
-#define JOIN_2         13
+#define REQ_CHAT_11         13
 #define UPDATE         14
 #define REQUEST        15
 #define QUIT           16
@@ -29,7 +29,7 @@
 #define USER_TEXT1     19 //send msg 
 #define LIST_USERGR    20
 #define TO             21
-#define REQUEST1       22
+#define REP_CHAT_11       22
 #define AWAIT          23
 #define DONE           24
 #define KICK           25 //client send

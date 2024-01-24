@@ -3,7 +3,7 @@ phanhieu 123456 NULL/hthq/ha NULL/hieu
 hmn 123 NULL NULL
 hthq hthq NULL/phanhieu NULL/phanhieu:khongdithithoi
 hoquynh hoquynh NULL NULL
-d d NULL NULL
+d d NULL/hieuhieu NULL/hieuhieu:naycodichoikhong
 abcac asbca NULL NULL
 ha ha NULL/phanhieu NULL/phanhieu:dichoi/phanhieu:dichoinao
 phuonganh 123 NULL NULL
@@ -18,4 +18,6 @@ quynh quynh NULL NULL
 hthq1 hthq1 NULL NULL
 NKT 123 NULL NULL
 HMN 123 NULL/hmn/hthq/ha NULL
-hieuhieu 123456 NULL NULL
+hieuhieu 123456 NULL/d NULL/d:thoikhongdidau
+1 hieu12 NULL NULL
+hieuphan 1 NULL NULL
