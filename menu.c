@@ -34,7 +34,7 @@ void chatFunction(){
 	printf("9. Un Friend\n");
 	printf("10. Unread Message\n");
 	printf("11. Send Offline Message\n");
-	printf("Your choice (1-7):\n");
+	printf("Your choice (0-11):\n");
 	//printf("a");
 }
 
@@ -45,4 +45,5 @@ void menuhelp(){
 	printf("/listusergroup : List user of  rooms\n");
 	printf("/touser : chat private to user\n");
 	printf("/kickuser : kick user ( admin )\n");
+	printf("/add: add user to room ( admin )\n");
 }

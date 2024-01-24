@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include "common.h"
 #include "login.h"
+#include "logger.h"
+
 #define MAXLEN 100
 
 int max = 0;		   // so user
@@ -139,7 +141,7 @@ int findname(char *name)
 	}
 	return m;
 }
-//tim ten user
+// tim ten user
 int findname2(char *name)
 {
 	int m = 0;
@@ -476,18 +478,27 @@ int processRegister(int sock, char *username, char *pass)
 	if (current[sock] != NULL)
 	{
 		char *errmsg = "->You are currently logged in. Please log out to register.\n";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error: In socket %d, there is 1 account currently logged in. Please log out to be able to register a new account.", sock);
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
 	if (checkExist(username) != NULL)
 	{
 		char *errmsg = "-> Account existed!\n";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error: Account existed");
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
 	addNode(username, pass, "", 1, "NULL", "NULL");
 	writeFile();
 	max++;
+	char logMessage[256];
+	snprintf(logMessage, sizeof(logMessage), "Register successful.");
+	writeToLog(logMessage);
 	char *succmsg = "Register successful!\n";
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 	return 1;
@@ -550,12 +561,18 @@ int processLogout(int sock, char *username)
 	if (checkExist(username) == NULL)
 	{
 		char *errmsg = "-> Cannot find account!\n";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error:Cannot find account.");
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
 	if (strcmp(current[sock]->username, username) != 0)
 	{
 		char *errmsg = "-> Account is not sign in!\n";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error: Account is not sign in!");
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return 0;
 	}
@@ -563,6 +580,9 @@ int processLogout(int sock, char *username)
 	current[sock] = NULL;
 
 	char *succmsg = "Log out successful!\n";
+	char logMessage[256];
+	snprintf(logMessage, sizeof(logMessage), "Log out successful!");
+	writeToLog(logMessage);
 	sendpkt(sock, SUCCESS, strlen(succmsg), succmsg);
 
 	return 1;
@@ -579,6 +599,9 @@ int joingroup(int sock, char *gname, char *username)
 	if (grid == -1)
 	{
 		char *errmsg = "This group doesn't exist!";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error: This group chat doesn't exist!");
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg);
 		return (0);
 	}
@@ -591,6 +614,9 @@ int joingroup(int sock, char *gname, char *username)
 	if (group[grid].capa == group[grid].occu)
 	{
 		char *errmsg = "room is full";
+		char logMessage[256];
+		snprintf(logMessage, sizeof(logMessage), "Error:This group chat is full.");
+		writeToLog(logMessage);
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg); /* gửi tin nhắn tham gia từ chối*/
 		return (0);
 	}
@@ -613,6 +639,9 @@ int joingroup(int sock, char *gname, char *username)
 	}
 	group[grid].mems = memb;
 	printf("admin: '%s' joined '%s'\n", username, gname);
+	char logMessage[256];
+	snprintf(logMessage, sizeof(logMessage), "'%s' joined '%s'\n", username, gname);
+	writeToLog(logMessage);
 	changeStatus1(sock);
 	/* Cập nhật phòng chat trực tuyến */
 	group[grid].occu++;
@@ -703,7 +732,7 @@ int join11(int sock, char *uname, char *username)
 	/* Không thể tự chat với bản thân */
 	if (strcmp(current[sock]->username, uname) == 0)
 	{
-		char *errmsg = "Can't talk with my self";
+		char *errmsg = "Can't talk with yourself";
 		sendpkt(sock, JOIN_REJECTED, strlen(errmsg), errmsg); /* gửi tin nhắn từ chối tham gia */
 		return (0);
 	}
@@ -742,7 +771,6 @@ int requestAddFriend(int sock, char *uname, char *username)
 		return (0);
 	}
 	printf("add friend %s - %s\n", username, uname);
-
 	sendpkt(try(uname), REQUEST_ADD_FRIEND, strlen(current[sock]->username) + 1, current[sock]->username);
 
 	return (1);
@@ -985,6 +1013,47 @@ int processAddFriend(int sock, char *text)
 		sendpkt(try(name), FRIEND_REJECT, 0, NULL);
 	}
 }
+
+int processAddMember(int sock, char *text)
+{
+	char *tl, *name;
+	tl = strtok(text, "/");
+	name = strtok(NULL, "/");
+	int grid;
+	Member *memb;
+	Member *admin;
+	node *temp;
+	if (strcmp(tl, "y") == 0)
+	{
+		temp = findnamebysock(sock);
+		admin = findmemberbysock(try(name));
+		grid = admin->grid;
+		leavegroup(sock);
+		memb = (Member *)calloc(1, sizeof(Member));
+		memb->name = strdup(temp->username);
+		memb->sock = sock;
+		memb->grid = grid;
+		memb->prev = NULL;
+		memb->next = group[grid].mems;
+		if (group[grid].mems)
+		{
+			group[grid].mems->prev = memb;
+		}
+		group[grid].mems = memb;
+		printf("Admin: '%s' joined '%s'\n", temp->username, group[grid].name);
+		changeStatus1(sock);
+		group[grid].occu++;
+		printf("%d\n", current[sock]->sock);
+		sendpkt(sock, MEMBER_ACCEPT, 0, NULL);
+		sendpkt(try(name), MEMBER_ACCEPT, 0, NULL);
+		fflush(stdin);
+	}
+	else
+	{
+		sendpkt(sock, MEMBER_REJECT, 0, NULL);
+		sendpkt(try(name), MEMBER_REJECT, 0, NULL);
+	}
+}
 int givemsg(int sock, char *text)
 {
 	char pktbufr[MAXPKTLEN];
@@ -1058,6 +1127,61 @@ int toUser(int sock, char *text)
 	// printf("%d\n", sender->sock);
 	printf("%s: %s", temp->username, text);
 	return (1);
+}
+
+// sock: id cua nguoi dung hien tai, text: ten nguoi muon them
+int addMember(int sock, char *text)
+{
+	Member *memb;
+	Member *sender;
+	char *admin;
+	node *temp;
+
+	sender = findmemberbysock(sock);
+	temp = findnamebysock(sock);
+	if (!sender)
+	{
+		printf("strange: no member at %d\n", sock);
+		return (0);
+	}
+	admin = group[sender->grid].admin;
+
+	if (strcmp(admin, current[sock]->username) != 0)
+	{
+		char *errmsg = "You are not admin";
+		// char logMessage[256];
+		// snprintf(logMessage, sizeof(logMessage), "Error: '%s' at socket %d isn't group chat 's admin.", current[sock]->username, sock);
+		// writeToLog(logMessage);
+		sendpkt(sock, ADD_MEMBER, strlen(errmsg) + 1, errmsg);
+	}
+	else
+	{
+		int d = 0;
+		for (memb = group[sender->grid].mems; memb; memb = memb->next)
+		{
+			if (memb->sock == sock)
+				continue;
+			if (strncmp(memb->name, text, strlen(text)) == 0)
+			{
+				d++;
+			}
+		}
+		if (d == 0)
+		{
+			sendpkt(try(text), ASK_MEMBER, strlen(current[sock]->username) + 1, current[sock]->username);
+			// char logMessage[256];
+			// snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d sends a request to join group chat to '%s' at socket '%d'", current[sock]->username, sock, text, try(text));
+			// writeToLog(logMessage);
+		}
+		else
+		{
+			char *msg = "User is already in the group chat.";
+			// char logMessage[256];
+			// snprintf(logMessage, sizeof(logMessage), "Error: '%s' at socket %d is already in the group chat.", text, try(text));
+			// writeToLog(logMessage);
+			sendpkt(sock, ADD_MEMBER, strlen(msg) + 1, msg);
+		}
+	}
 }
 /* Gửi tin nhắn đên các thành viên khác trong phòng chat */
 int relaymsg(int sock, char *text)
@@ -1205,23 +1329,24 @@ int main(int argc, char *argv[])
 					// CHEN LOGIN VAO DAY
 					char *gname, *mname, *username, *pass, *name, *uname, *status, *msg;
 					char *cap;
+					char logMessage[256];
 					/* loại hành động */
 
 					switch (pkt->type)
 					{
 
 					case REGISTER:
-
 						username = strtok(pkt->text, "/");
 						pass = strtok(NULL, "/");
+						snprintf(logMessage, sizeof(logMessage), "User at socket %d requested registration.", sock);
+						writeToLog(logMessage);
 						processRegister(sock, username, pass);
 						break;
 					case CREAT_ROOM:
-
 						name = strtok(pkt->text, "/");
 						cap = strtok(NULL, "/");
-						// name = pkt->text;
-						// cap = name + strlen(name) + 1;
+						snprintf(logMessage, sizeof(logMessage), "User at socket %d requested to create a group chat.", sock);
+						writeToLog(logMessage);
 						processCreatRoom(sock, name, cap);
 						break;
 					case UPDATE:
@@ -1232,13 +1357,14 @@ int main(int argc, char *argv[])
 					case LOG_IN:
 						username = strtok(pkt->text, "/");
 						pass = strtok(NULL, "/");
-						// username = pkt->text;
-						// pass = username + strlen(username) + 1;
-						// printf("%s",pass);
+						snprintf(logMessage, sizeof(logMessage), "User at socket %d requested to login with username '%s'.", sock, username);
+						writeToLog(logMessage);
 						processLogIn(sock, username, pass);
 						break;
 					case LOG_OUT:
 						username = pkt->text;
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to logout", username, sock);
+						writeToLog(logMessage);
 						processLogout(sock, username);
 						break;
 					case JOIN_2:
@@ -1247,49 +1373,78 @@ int main(int argc, char *argv[])
 						break;
 					case ADD_FRIEND:
 						username = pkt->text;
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to be friend with '%s' at socket %d.", current[sock]->username, sock, username, try(username));
+						writeToLog(logMessage);
 						requestAddFriend(sock, username, current[sock]->username);
 						break;
 					case UN_FRIEND:
 						username = pkt->text;
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to unfriend with '%s' at socket %d.", current[sock]->username, sock, username, try(username));
+						writeToLog(logMessage);
 						requestUnFriend(sock, username, current[sock]->username);
 						break;
 					case SEND_OFF_MESSAGES:
 						username = strtok(pkt->text, "/");
 						msg = strtok(NULL, "/");
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to send an offline message to '%s'.", current[sock]->username, sock, username);
+						writeToLog(logMessage);
 						requestSendOffMessage(sock, username, current[sock]->username, msg);
 						break;
 					case REP_ADD_FRIEND:
 						processAddFriend(sock, pkt->text);
 						break;
+					case MEMBER_ANSWER:
+						processAddMember(sock, pkt->text);
+						break;
 					case LIST_GROUPS:
-
 						listgroups(sock);
 						break;
 					case JOIN_GROUP:
 						gname = pkt->text;
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to join group chat named '%s'", current[sock]->username, sock, gname);
+						writeToLog(logMessage);
 						joingroup(sock, gname, current[sock]->username);
 						break;
 					case LISTUSERON:
 						listOnline(sock);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to show list of users online", current[sock]->username, sock);
+						writeToLog(logMessage);
 						break;
 					case LIST_FRIENDS:
 						listFriend(sock);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to show list of friends", current[sock]->username, sock);
+						writeToLog(logMessage);
 						break;
 					case LIST_OFF_MESSAGES:
 						listOfflineMsg(sock);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to show list of offline messages", current[sock]->username, sock);
+						writeToLog(logMessage);
 						break;
 					case LIST_USERGR:
 						listUserGr(sock);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to show list of users in the group chat", current[sock]->username, sock);
+						writeToLog(logMessage);
 						break;
 					case LEAVE_GROUP:
 						leavegroup(sock);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to left the current group chat", current[sock]->username, sock);
+						writeToLog(logMessage);
 						break;
 					case TO:
 						toUser(sock, pkt->text);
 						break;
+					case ADD_MEMBER:
+						addMember(sock, pkt->text);
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d requested to add '%s' at socket %d to group chat.", current[sock]->username, sock, pkt->text, try(pkt->text));
+						writeToLog(logMessage);
+						break;
 					case USER_TEXT:
-
 						relaymsg(sock, pkt->text);
+						Member *sender;
+						sender = findmemberbysock(sock);
+						int grid = sender->grid;
+						snprintf(logMessage, sizeof(logMessage), "'%s' at socket %d sent a message to the group chat named '%s'.", current[sock]->username, sock, group[grid].name);
+						writeToLog(logMessage);
 						break;
 					case MENU:
 						repmenu(sock, pkt->text);
@@ -1343,6 +1498,10 @@ int main(int argc, char *argv[])
 				/* Hiển thị tên máy chủ của máy khách và bộ mô tả ổ cắm tương ứng  */
 				printf("admin: connect from '%s' at '%d'\n",
 					   clientname, csd);
+
+				char logMessage[256];
+				snprintf(logMessage, sizeof(logMessage), "New connection from '%s' at socket '%d'", clientname, csd);
+				writeToLog(logMessage);
 
 				/*Thêm csd vào livesdset */
 				FD_SET(csd, &livesdset);
